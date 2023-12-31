@@ -286,7 +286,7 @@ public struct DDFSubfieldDefinition {
             return Int(bytesStr) ?? 0
 
         case "B", "b":
-            var abyData: [UInt8] = [] //[8];
+            var abyData = [UInt8](repeating: 0, count: 8)
             if formatWidth > nMaxBytes {
                 print("Attempt to extract int subfield \(name) with format \(formatString)")
                 print("failed as only \(nMaxBytes) bytes available.  Using zero.")
@@ -298,12 +298,15 @@ public struct DDFSubfieldDefinition {
             // In any event we copy it into our buffer to ensure it is
             // word aligned.
 
+            let bytes: [UInt8] = Array(pachSourceData)
+
             if formatString[0] == "B" || formatString[0] == "b" {
                 for i in 0..<formatWidth {
-                    abyData[formatWidth-i-1] = pachSourceData[i]
+                    //abyData[formatWidth-i-1] = bytes[i] // cannot use -1 when i = 0
+                    abyData[formatWidth-i] = bytes[i]
                 }
             } else {
-                abyData = Array(pachSourceData[...formatWidth])
+                abyData = Array(bytes[...formatWidth])
             }
 
             // Interpret the bytes of data.
