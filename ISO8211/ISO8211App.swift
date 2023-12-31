@@ -13,7 +13,7 @@ struct ISO8211App: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CatalogView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
