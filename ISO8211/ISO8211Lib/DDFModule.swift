@@ -140,7 +140,6 @@ public struct DDFModule {
             var nFieldPos = 0
             //FIXME: Tag is wrong length should be 4 bytes
             let szTag = String(data: pachRecord[nEntryOffset...(nEntryOffset+_sizeFieldTag-1)], encoding: .utf8) ?? ""
-            //szTag.append("\0".byte)
             nEntryOffset += _sizeFieldTag
             nFieldLength = DDFUtils.DDFScanInt(source: pachRecord,
                                                fromIndex: nEntryOffset,
@@ -186,7 +185,7 @@ public struct DDFModule {
     /**
      Close the file and tidy up.
      */
-    private mutating func close() {
+    public mutating func close() {
         if fpDDF != nil {
             do {
                 try fpDDF?.close()
@@ -237,8 +236,6 @@ public struct DDFModule {
      */
 
     public func findFieldDefn(fieldName: String) -> DDFFieldDefinition? {
-        // This pass tries to reduce the cost of comparing strings by
-        // first checking the first character, and by using strcmp()
         for i in 0..<fieldDefinitionCount {
             if fieldName == fieldDefinitions[i].getName() {
                 return fieldDefinitions[i]

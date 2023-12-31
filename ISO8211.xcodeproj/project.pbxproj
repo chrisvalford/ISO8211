@@ -45,6 +45,8 @@
 		2FB7701B2B404A39005B37E4 /* DDFFieldDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF62B3ADFB20079E931 /* DDFFieldDefinition.swift */; };
 		2FB770672B409F38005B37E4 /* DDFSubfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770662B409F38005B37E4 /* DDFSubfield.swift */; };
 		2FB770682B409F38005B37E4 /* DDFSubfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770662B409F38005B37E4 /* DDFSubfield.swift */; };
+		2FB7706A2B417D24005B37E4 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770692B417D24005B37E4 /* Enums.swift */; };
+		2FB7706B2B417D24005B37E4 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770692B417D24005B37E4 /* Enums.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -93,6 +95,7 @@
 		2F6A9C142B3C30F90079E931 /* DDFField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDFField.swift; sourceTree = "<group>"; };
 		2F6A9C1A2B3C98970079E931 /* MoreMath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoreMath.swift; sourceTree = "<group>"; };
 		2FB770662B409F38005B37E4 /* DDFSubfield.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DDFSubfield.swift; sourceTree = "<group>"; };
+		2FB770692B417D24005B37E4 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -195,6 +198,7 @@
 				2F6A9C072B3AEC010079E931 /* DDFUtils.swift */,
 				2F6A9C1A2B3C98970079E931 /* MoreMath.swift */,
 				2F6A9BF82B3AE0B60079E931 /* ISO8211Error.swift */,
+				2FB770692B417D24005B37E4 /* Enums.swift */,
 			);
 			path = ISO8211Lib;
 			sourceTree = "<group>";
@@ -342,6 +346,7 @@
 			files = (
 				2F6A9C082B3AEC010079E931 /* DDFUtils.swift in Sources */,
 				2F6A9C0B2B3B6B170079E931 /* DDFSubfieldDefinition.swift in Sources */,
+				2FB7706A2B417D24005B37E4 /* Enums.swift in Sources */,
 				2F6A9BF32B3ADDB30079E931 /* DDFModule.swift in Sources */,
 				2F6A9C022B3AE24D0079E931 /* Array+.swift in Sources */,
 				2FB770672B409F38005B37E4 /* DDFSubfield.swift in Sources */,
@@ -380,6 +385,7 @@
 				2F6A9C1C2B3C98970079E931 /* MoreMath.swift in Sources */,
 				2F6A9C062B3AE2C30079E931 /* String+.swift in Sources */,
 				2F6A9BFD2B3AE1CA0079E931 /* UInt8+.swift in Sources */,
+				2FB7706B2B417D24005B37E4 /* Enums.swift in Sources */,
 				2F6A9BD72B3ADD060079E931 /* ISO8211Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

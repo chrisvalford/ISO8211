@@ -1,6 +1,6 @@
 //
 //  Array+.swift
-//  GlassBridge
+//  ISO8211
 //
 //  Created by Christopher Alford on 27/4/22.
 //
@@ -45,23 +45,7 @@ extension Array where Element == UInt8 {
             consumedCount += 1
         }
         completion(consumedCount, Array(self[0..<i])) // Skip the delimiter
-        //return String(bytes: pszRecord[0...i], encoding: .utf8)!
     }
-
-//    public func fetchArray(maximumLength: Int,
-//                            firstDelimiter: UInt8,
-//                            secondDelimiter: UInt8,
-//                            completion: (_ count: Int, _ value: [UInt8]) -> Void)  {
-//        let result = fetchArray(maximumLength: maximumLength, firstDelimiter: firstDelimiter, secondDelimiter: secondDelimiter)
-//        guard let count = result.1, let value = result.1 else {
-//            completion(result.0, "")
-//        }
-//        if result.1.isEmpty {
-//            completion(result.0, [])
-//            return
-//        }
-//        completion(result.0, result.1)
-//    }
 
     public func fetchString(maximumLength: Int,
                             firstDelimiter: UInt8,
@@ -84,7 +68,6 @@ extension Array where Element == UInt8 {
         let trimmedflString = flString?.replacingOccurrences(of: "^0+", with: "", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedflString != "" else {
             return 0
-            //throw DDFException.invalidIntegerValue
         }
         guard let value = Int(trimmedflString!) else {
             throw ISO8211Error.invalidIntegerValue

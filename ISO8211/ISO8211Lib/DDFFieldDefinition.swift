@@ -7,18 +7,6 @@
 
 import Foundation
 
-public enum DDF_data_struct_code { case dsc_elementary,
-                                 dsc_vector,
-                                 dsc_array,
-                                 dsc_concatenated }
-public enum DDF_data_type_code { case dtc_char_string,
-                               dtc_implicit_point,
-                               dtc_explicit_point,
-                               dtc_explicit_point_scaled,
-                               dtc_char_bit_string,
-                               dtc_bit_string,
-                               dtc_mixed_data_type }
-
 public struct DDFFieldDefinition {
     private var poModule: DDFModule?
     private var tag = ""
@@ -135,7 +123,7 @@ public struct DDFFieldDefinition {
     }
 
     /** Fetch a pointer to the field name (tag).
-     * @return this is an internal copy and shouldn't be freed.
+     * - Returns this is an internal copy and shouldn't be freed.
      */
     func getName() -> String { return tag }
 
@@ -163,15 +151,14 @@ public struct DDFFieldDefinition {
      * Get the width of this field.  This function isn't normally used
      * by applications.
      *
-     * @return The width of the field in bytes, or zero if the field is not
+     * - Returns The width of the field in bytes, or zero if the field is not
      * apparently of a fixed width.
      */
     func getFixedWidth() -> Int { return fixedWidth }
 
     /**
      * Fetch repeating flag.
-     * @see DDFField::getRepeatCount()
-     * @return TRUE if the field is marked as repeating.
+     * - Returns `true` if the field is marked as repeating.
      */
     func isRepeating() -> Bool { return repeatingSubfields }
 
@@ -179,7 +166,7 @@ public struct DDFFieldDefinition {
     mutating func setRepeatingFlag(_ n: Bool) { repeatingSubfields = n }
 
     /**
-     * Based on the _arrayDescr build a set of subfields.
+     * Based on the `_arrayDescr` build a set of subfields.
      */
     private mutating func buildSubfields() -> Bool {
         var papszSubfieldNames: [String]
@@ -207,13 +194,13 @@ public struct DDFFieldDefinition {
         // Strip off the repeating marker, when it occurs, but mark our field as repeating.
         if pszSublist.hasPrefix("*") {
             repeatingSubfields = true
-            pszSublist = String(pszSublist.dropFirst()) //Array(pszSublist[1...])
+            pszSublist = String(pszSublist.dropFirst())
         }
 
-        // split list of fields.
+        // Split list of fields.
         papszSubfieldNames = pszSublist.components(separatedBy: "!")
 
-        // Minimally initialize the subfields.  More will be done later.
+        // Minimally initialize the subfields.
         let nSFCount = papszSubfieldNames.count
         for iSF in 0..<nSFCount {
             var poSFDefn = DDFSubfieldDefinition()
@@ -250,7 +237,6 @@ public struct DDFFieldDefinition {
 
         // Apply the format items to subfields.
         var iFormatItem = 0
-        //while !paformatItems[iFormatItem].isEmpty && iFormatItem < paformatItems.count - 1 {
         for formatItem in paformatItems {
             var pszPastPrefix = formatItem //paformatItems[iFormatItem]
 
@@ -278,7 +264,6 @@ public struct DDFFieldDefinition {
 
         // Verify that we got enough formats, cleanup and return.
         paformatItems.removeAll()
-        //FIXME: if iFormatItem == 11 < subfieldCount == 12
         if iFormatItem < subfieldCount-1 {
             print("Got less formats than subfields for field \(tag).");
             return false
@@ -314,7 +299,6 @@ public struct DDFFieldDefinition {
         let nOldLen = _formatControls.count
         var pszNewFormatControls = _formatControls
 
-        //pszNewFormatControls[nOldLen-1] = 0
         if pszNewFormatControls[nOldLen-2] != "(" {
             pszNewFormatControls.append(",")
         }
@@ -324,20 +308,17 @@ public struct DDFFieldDefinition {
         _formatControls.removeAll()
         _formatControls = pszNewFormatControls
 
-    // Add the subfield name to the list.
+        // Add the subfield name to the list.
         _arrayDescr.removeAll()
-//        _arrayDescr = (char *)
-//            CPLRealloc(_arrayDescr,
-//                       strlen(_arrayDescr)+strlen(newSubfieldDefinition->getName())+2);
         if _arrayDescr.count > 0 {
             _arrayDescr.append("!")
         }
         _arrayDescr.append(contentsOf: newSubfieldDefinition.getName())
     }
 
-    let comma = UInt8(44) //Character(",").asciiValue!
-    let openingParenthesis = UInt8(40) //Character("(").asciiValue!
-    let closingParenthesis = UInt8(41) //Character(")").asciiValue!
+    let comma = ",".byte
+    let openingParenthesis = "(".byte
+    let closingParenthesis = ")".byte
 
     /**
      * Extract a substring terminated by a comma (or end of string).
@@ -386,8 +367,6 @@ public struct DDFFieldDefinition {
         var iSrc = 0
         var nRepeat = 0
 
-        //print(pszSrc.string)
-
         while iSrc < pszSrc.count {
             /*
              * This is presumably an extra level of brackets around
@@ -397,12 +376,11 @@ public struct DDFFieldDefinition {
              */
             if ((iSrc == 0 || pszSrc[iSrc - 1] == comma) && pszSrc[iSrc] == openingParenthesis) {
                 let pszContents = extractSubstring(source: String(bytes: Array(pszSrc[iSrc...]), encoding: .utf8) ?? "")
-                //print("pszContents: \(pszContents.string)")
                 let pszExpandedContents = expandFormat(source: pszContents)
                 szDest.append(contentsOf: Array(pszExpandedContents.utf8))
                 iSrc = iSrc + pszContents.count + 2
 
-            } else if (iSrc == 0 || pszSrc[iSrc - 1] == comma) && pszSrc[iSrc].isNumber { // isDigit
+            } else if (iSrc == 0 || pszSrc[iSrc - 1] == comma) && pszSrc[iSrc].isNumber {
                 // this is a repeated subclause
                 let orig_iSrc = iSrc
                 // skip over repeat count.
@@ -425,15 +403,10 @@ public struct DDFFieldDefinition {
                     iSrc += pszContents.count
                 }
             } else {
-                //print("pszSrc: \(pszSrc.string)")
-                //print("Appending psZSrc[\(iSrc)] to szDest")
-                //print("szDest: \(szDest.string)")
-                //print("------------------------------------")
                 szDest.append(pszSrc[iSrc])
                 iSrc += 1
             }
         }
-        //print(szDest.string)
         return String(bytes: szDest, encoding: .utf8) ?? ""
     }
 }

@@ -97,8 +97,7 @@ public class DDFRecord {
             return false
         }
 
-        // notdef: eventually we may have to do something at this point to
-        // notify the DDFField's that their data values have changed.
+        // Possible TODO Notify the DDFField's that their data values have changed?
         return true
     }
 
@@ -118,7 +117,7 @@ public class DDFRecord {
         nReuseHeader = false
         
         // read the 24 byte leader.
-        var achLeader: Data //[nLeaderSize];
+        var achLeader: Data
         var data: Data?
         do {
             data = try poModule.getFP().read(upToCount: nLeaderSize)
@@ -158,7 +157,7 @@ public class DDFRecord {
         }
         nFieldOffset = _fieldAreaStart - nLeaderSize;
         
-        // Is there anything seemly screwy about this record?
+        // Simple checks
         if (_recLength < 24 || _recLength > 100000000 || _fieldAreaStart < 24 || _fieldAreaStart > 100000)
             && (_recLength != 0) {
             print("Data record appears to be corrupt on DDF file.")
@@ -182,8 +181,8 @@ public class DDFRecord {
             }
             asciiData = data
             
-            // If we don't find a field terminator at the end of the record
-            // we will read extra bytes till we get to it.
+            // If there is no field terminator at the end of the record
+            // read additional bytes till one is found.
             while(asciiData[nDataSize-1] != DDF_FIELD_TERMINATOR) {
                 nDataSize += 1
                 do {
@@ -195,7 +194,7 @@ public class DDFRecord {
                 }
             }
             
-            // Loop over the directory entries, making a pass counting them.
+            // Count the directory entries.
             let nFieldEntryWidth = _sizeFieldLength + _sizeFieldPos + _sizeFieldTag;
             nFieldCount = 0
             for i in stride(from: 0, to: nDataSize, by: nFieldEntryWidth) {
@@ -251,12 +250,11 @@ public class DDFRecord {
             //   Loop over the directory entries, making a pass counting them.
             let nFieldEntryWidth = _sizeFieldLength + _sizeFieldPos + _sizeFieldTag
             nFieldCount = 0
-            var tmpBuf: Data //(char*)malloc(nFieldEntryWidth);
+            var tmpBuf: Data
 
             // while we're not at the end, store this entry,
             // and keep on reading...
             repeat {
-                // read an Entry:
                 do {
                     data = try poModule.getFP().read(upToCount: nFieldEntryWidth)
                     tmpBuf = data!
@@ -301,7 +299,7 @@ public class DDFRecord {
                 let nFieldLength = DDFUtils.DDFScanInt(source: asciiData,
                                                        fromIndex: nEntryOffset,
                                                        maxChars: _sizeFieldLength) ?? 0
-                var tmpBuf: Data //(nFieldLength);
+                var tmpBuf: Data
 
                 // read an Entry:
                 do {

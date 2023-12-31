@@ -7,22 +7,6 @@
 
 import Foundation
 
-public enum DDFDataType {
-    case DDFInt,
-         DDFFloat,
-         DDFString,
-         DDFBinaryString
-}
-
-public enum DDFBinaryFormat: Int  {
-    case notBinary = 0,
-         unsignedInteger = 1,
-         signedInteger = 2,
-         floatingPointReal = 3,
-         floatReal = 4,
-         floatComplex = 5
-}
-
 public struct DDFSubfieldDefinition {
 
     private(set) var name = ""  // a.k.a. subfield mnemonic
@@ -32,14 +16,11 @@ public struct DDFSubfieldDefinition {
     private var eBinaryFormat: DDFBinaryFormat = .notBinary
 
     // isVariable determines whether we using the
-    // formatDelimeter (TRUE), or the fixed width (FALSE).
+    // formatDelimeter (true), or the fixed width (false).
     private var isVariable: Bool = true
 
     private var formatDelimeter = DDF_UNIT_TERMINATOR
     private var formatWidth = 0
-
-    // Fetched string cache.  This is where we hold the values
-    // returned from ExtractStringData().
     private var maximumBufferCharacters = 0
     private var asciiBuffer: [UInt8] = []
 
@@ -51,7 +32,7 @@ public struct DDFSubfieldDefinition {
      * Get the general type of the subfield.  This can be used to
      * determine which of ExtractFloatData(), ExtractIntData() or
      * ExtractStringData() should be used.
-     * @return The subfield type.  One of DDFInt, DDFFloat, DDFString or
+     * - Returns The subfield type.  One of DDFInt, DDFFloat, DDFString or
      * DDFBinaryString.
      */
     public func getType() -> DDFDataType { return eType }
@@ -101,7 +82,7 @@ public struct DDFSubfieldDefinition {
                     let value = Int(bytesStr) ?? 0
                     assert(value % 8 == 0)
                     formatWidth = value / 8
-                    eBinaryFormat = .signedInteger // good default, works for SDTS.
+                    eBinaryFormat = .signedInteger
                     
                     if formatWidth < 5 {
                         eType = .DDFInt
@@ -121,8 +102,6 @@ public struct DDFSubfieldDefinition {
             }
 
         case "X":
-            // 'X' is extra space, and shouldn't be directly assigned to a
-            // subfield ... I haven't encountered it in use yet though.
             print("Format type of \(formatString[0]) not supported.")
             return false
 
@@ -150,28 +129,26 @@ public struct DDFSubfieldDefinition {
      * data for this subfield.  The number of bytes
      * consumed as part of this field can also be fetched.  This number may
      * be one longer than the string length if there is a terminator character
-     * used.<p>
+     * used.
      *
      * This function will return the raw binary data of a subfield for
      * types other than DDFString, including data past zero chars.  This is
      * the standard way of extracting DDFBinaryString subfields for instance.<p>
      *
-     * @param pachSourceData The pointer to the raw data for this field.  This
+     * - Parameter pachSourceData The pointer to the raw data for this field.  This
      * may have come from DDFRecord::getData(), taking into account skip factors
      * over previous subfields data.
-     * @param nMaxBytes The maximum number of bytes that are accessable after
+     * - Parameter nMaxBytes The maximum number of bytes that are accessable after
      * pachSourceData.
-     * @param pnConsumedBytes Pointer to an integer into which the number of
+     * - Parameter pnConsumedBytes Pointer to an integer into which the number of
      * bytes consumed by this field should be written.  May be NULL to ignore.
      * This is used as a skip factor to increment pachSourceData to point to the
      * next subfields data.
      *
-     * @return A pointer to a buffer containing the data for this field.  The
+     * - Returns A pointer to a buffer containing the data for this field.  The
      * returned pointer is to an internal buffer which is invalidated on the
      * next ExtractStringData() call on this DDFSubfieldDefinition().  It should not
      * be freed by the application.
-     *
-     * @see ExtractIntData(), ExtractFloatData()
      */
     mutating func extractStringData(pachSourceData: Data,
                                     nMaxBytes: Int,
@@ -205,21 +182,18 @@ public struct DDFSubfieldDefinition {
      * called for any type of subfield, and will return zero if the subfield is
      * not numeric.
      *
-     * @param pachSourceData The pointer to the raw data for this field.  This
+     * - Parameter pachSourceData The pointer to the raw data for this field.  This
      * may have come from DDFRecord::getData(), taking into account skip factors
      * over previous subfields data.
-     * @param nMaxBytes The maximum number of bytes that are accessable after
+     * - Parameter nMaxBytes The maximum number of bytes that are accessable after
      * pachSourceData.
-     * @param pnConsumedBytes Pointer to an integer into which the number of
+     * - Parameter pnConsumedBytes Pointer to an integer into which the number of
      * bytes consumed by this field should be written.  May be NULL to ignore.
      * This is used as a skip factor to increment pachSourceData to point to the
      * next subfields data.
      *
-     * @return The subfield's numeric value (or zero if it isn't numeric).
-     *
-     * @see ExtractIntData(), ExtractStringData()
+     * - Returns The subfield's numeric value (or zero if it isn't numeric).
      */
-
     mutating func extractFloatData(pachSourceData: Data,
                                    nMaxBytes: Int,
                                    pnConsumedBytes: inout Int?) -> Double {
@@ -288,21 +262,18 @@ public struct DDFSubfieldDefinition {
      * called for any type of subfield, and will return zero if the subfield is
      * not numeric.
      *
-     * @param pachSourceData The pointer to the raw data for this field.  This
+     * - Parameter pachSourceData The pointer to the raw data for this field.  This
      * may have come from DDFRecord::getData(), taking into account skip factors
      * over previous subfields data.
-     * @param nMaxBytes The maximum number of bytes that are accessable after
+     * - Parameter nMaxBytes The maximum number of bytes that are accessable after
      * pachSourceData.
-     * @param pnConsumedBytes Pointer to an integer into which the number of
+     * - Parameter pnConsumedBytes Pointer to an integer into which the number of
      * bytes consumed by this field should be written.  May be NULL to ignore.
      * This is used as a skip factor to increment pachSourceData to point to the
      * next subfields data.
      *
-     * @return The subfield's numeric value (or zero if it isn't numeric).
-     *
-     * @see ExtractFloatData(), ExtractStringData()
+     * - Returns The subfield's numeric value (or zero if it isn't numeric).
      */
-
     mutating func extractIntData(pachSourceData: Data,
                                  nMaxBytes: Int,
                                  pnConsumedBytes: inout Int?) -> Int {
@@ -398,18 +369,17 @@ public struct DDFSubfieldDefinition {
      * want the raw binary data to interpret themselves.  Otherwise use one
      * of ExtractStringData(), ExtractIntData() or ExtractFloatData().
      *
-     * @param pachSourceData The pointer to the raw data for this field.  This
+     * - Parameter pachSourceData The pointer to the raw data for this field.  This
      * may have come from DDFRecord::getData(), taking into account skip factors
      * over previous subfields data.
-     * @param nMaxBytes The maximum number of bytes that are accessable after
+     * - Parameter nMaxBytes The maximum number of bytes that are accessable after
      * pachSourceData.
-     * @param pnConsumedBytes Pointer to an integer into which the number of
+     * - Parameter pnConsumedBytes Pointer to an integer into which the number of
      * bytes consumed by this field should be written.  May be NULL to ignore.
      *
-     * @return The number of bytes at pachSourceData which are actual data for
+     * - Returns The number of bytes at pachSourceData which are actual data for
      * this record (not including unit, or field terminator).
      */
-
     func getDataLength(pachSourceData: Data,
                        nMaxBytes: Int,
                        pnConsumedBytes: inout Int?) -> Int {
@@ -442,7 +412,6 @@ public struct DDFSubfieldDefinition {
              * which we established by the first character being out of the
              * ASCII printable range (32-127).
              */
-
             if bytes[0] < 32 || bytes[0] >= 127 {
                 bCheckFieldTerminator = false
             }
@@ -464,6 +433,4 @@ public struct DDFSubfieldDefinition {
             return nLength
         }
     }
-
-
 }
