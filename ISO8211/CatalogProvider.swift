@@ -22,6 +22,7 @@ class CatalogProvider: ObservableObject {
             return
         }
         readRecords()
+        module.close()
     }
 
     /**

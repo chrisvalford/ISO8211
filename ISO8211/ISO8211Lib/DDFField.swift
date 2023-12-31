@@ -88,7 +88,7 @@ public struct DDFField {
                 if poThisSFDefn.getWidth() > nDataSize - iOffset {
                     nBytesConsumed = poThisSFDefn.getWidth()
                 } else {
-                    let result = poThisSFDefn.getDataLength(pachSourceData: asciiData[iOffset...],
+                    _ = poThisSFDefn.getDataLength(pachSourceData: asciiData[iOffset...],
                                                nMaxBytes: nDataSize - iOffset,
                                                pnConsumedBytes: &nBytesConsumed)
                 }
