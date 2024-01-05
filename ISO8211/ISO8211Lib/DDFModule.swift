@@ -37,13 +37,13 @@ public struct DDFModule {
     private var maximumCloneCount = 0
     private var clones: [DDFRecord] = []
 
-    public mutating func open(filePath: String) throws {
+    public mutating func open(url: URL) throws {
         let nLeaderSize = 24
 
         if fpDDF != nil {
             close()
         }
-        let url = URL(fileURLWithPath: filePath)
+        
         do {
             fpDDF = try FileHandle.init(forReadingFrom: url)
         } catch {

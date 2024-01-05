@@ -25,8 +25,13 @@ public struct DDFSubfieldDefinition {
     private var asciiBuffer: [UInt8] = []
 
     /** Get the subfield width (zero for variable). */
-    public func getWidth() -> Int { return formatWidth } // zero for variable.
-    public func getBinaryFormat() -> DDFBinaryFormat { return eBinaryFormat }
+    public func getWidth() -> Int {
+        return formatWidth
+    } // zero for variable.
+
+    public func getBinaryFormat() -> DDFBinaryFormat {
+        return eBinaryFormat
+    }
 
     /**
      * Get the general type of the subfield.  This can be used to
@@ -35,9 +40,13 @@ public struct DDFSubfieldDefinition {
      * - Returns The subfield type.  One of DDFInt, DDFFloat, DDFString or
      * DDFBinaryString.
      */
-    public func getType() -> DDFDataType { return eType }
+    public func getType() -> DDFDataType {
+        return eType
+    }
 
-    public func getFormat() -> String { return formatString }
+    public func getFormat() -> String {
+        return formatString
+    }
 
     public mutating func setFormat(_ format: String) -> Bool {
         formatString.removeAll()
@@ -168,7 +177,7 @@ public struct DDFSubfieldDefinition {
         // will work for binary data.
         if nLength > 0 {
             let bytes: [UInt8] = Array(pachSourceData)
-            let subBytes = Array(bytes[...(nLength-1)]) // one byte too long so -1
+            let subBytes = Array(bytes[...(nLength)]) //FIXME: one byte too long so -1
             asciiBuffer = subBytes
         }
         return asciiBuffer
@@ -208,9 +217,9 @@ public struct DDFSubfieldDefinition {
         case "B", "b":
             var abyData: [UInt8] = [0,0,0,0,0,0,0,0]
             assert(formatWidth <= nMaxBytes)
-            //if pnConsumedBytes != nil {
-            pnConsumedBytes = formatWidth
-            //}
+            if pnConsumedBytes != nil {
+                pnConsumedBytes = formatWidth
+            }
 
             // Byte swap the data if it isn't in machine native format.
             // In any event we copy it into our buffer to ensure it is
@@ -226,10 +235,16 @@ public struct DDFSubfieldDefinition {
 
             // Interpret the bytes of data.
             switch eBinaryFormat {
+//            case .unsignedInteger, .signedInteger, .floatReal:
+//                let n = formatString[0] == "B" ? MoreMath.buildIntegerBE(bytevec: abyData, offset: 0) : MoreMath.buildIntegerLE(bytevec: abyData, offset: 0)
+//                return Double(n)
+
             case .unsignedInteger:
-                if (formatWidth == 1 ) {
-                    return Double((abyData[0]))
-                } else if (formatWidth == 2 ) {
+                if formatWidth == 1 {
+                    let byte = abyData[0]
+                    let str = String(bytes: [byte], encoding: .utf8) ?? ""
+                    return Double(str) ?? 0
+                } else if formatWidth == 2 {
                     let abyStr = String(bytes: abyData, encoding: .utf8) ?? ""
                     return Double(abyStr) ?? 0
                 }
@@ -292,32 +307,38 @@ public struct DDFSubfieldDefinition {
                 print("failed as only \(nMaxBytes) bytes available.  Using zero.")
                 return 0
             }
-            pnConsumedBytes = formatWidth
+            if pnConsumedBytes != nil {
+                pnConsumedBytes = formatWidth
+            }
 
             // Byte swap the data if it isn't in machine native format.
             // In any event we copy it into our buffer to ensure it is
             // word aligned.
 
-            let bytes: [UInt8] = Array(pachSourceData)
-
             if formatString[0] == "B" || formatString[0] == "b" {
                 for i in 0..<formatWidth {
-                    //abyData[formatWidth-i-1] = bytes[i] // cannot use -1 when i = 0
-                    abyData[formatWidth-i] = bytes[i]
+                    let source: [UInt8] = Array(pachSourceData)
+                    let index = formatWidth-i-1
+                    abyData[index] = source[i]
                 }
             } else {
-                abyData = Array(bytes[...formatWidth])
+                let data: [UInt8] = Array(pachSourceData)
+                abyData = Array(data[...formatWidth])
             }
 
             // Interpret the bytes of data.
-            switch(eBinaryFormat )
-            {
+            switch eBinaryFormat {
+//            case .unsignedInteger, .signedInteger, .floatReal:
+//                let n = formatString[0] == "B" ? MoreMath.buildIntegerBE(bytevec: abyData, offset: 0) : MoreMath.buildIntegerLE(bytevec: abyData, offset: 0)
+//                return n
+
             case .unsignedInteger:
                 if formatWidth == 4 {
                     let str = String(bytes: abyData, encoding: .utf8) ?? ""
                     return Int(str) ?? 0
                 } else if formatWidth == 1 {
-                    return Int(abyData[0])
+                    let str = String(bytes: [abyData[0]], encoding: .utf8) ?? ""
+                    return Int(str) ?? 0
                 } else if formatWidth == 2 {
                     let str = String(bytes: abyData, encoding: .utf8) ?? ""
                     return Int(str) ?? 0
