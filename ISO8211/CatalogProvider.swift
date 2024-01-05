@@ -6,17 +6,22 @@
 //
 
 import SwiftUI
+import System
 
 class CatalogProvider: ObservableObject {
 
     @Published var message = ""
     @Published var recordCount = 0
+    @Published var fileSize: UInt64 = 0
 
     private var module = DDFModule()
+    private var url: URL = URL(fileURLWithPath: "")
 
     func open(filePath: String) {
+        url = URL(fileURLWithPath: filePath)
+        fileSize = url.fileSize
         do {
-            try module.open(filePath: filePath)
+            try module.open(url: url)
         } catch {
             message = error.localizedDescription
             return
@@ -31,6 +36,7 @@ class CatalogProvider: ObservableObject {
     func readRecords() {
         var poRecord: DDFRecord?
         var iRecord = 0
+        var bytesRead = 0
 
         repeat {
             poRecord = module.readRecord()
@@ -38,7 +44,8 @@ class CatalogProvider: ObservableObject {
                 break
             }
             iRecord += 1
-            print("Record \(iRecord) (\(poRecord.getDataSize()) bytes)")
+            let recordSize = poRecord.getDataSize()
+            print("Record \(iRecord) (\(recordSize) bytes)")
 
             // Loop over each field in this particular record.
             for iField in 0..<poRecord.getFieldCount() {
@@ -98,7 +105,7 @@ class CatalogProvider: ObservableObject {
 
         switch poSFDefn.getType() {
         case .DDFInt:
-            if (poSFDefn.getBinaryFormat() == .unsignedInteger) {
+            if poSFDefn.getBinaryFormat() == .unsignedInteger {
                 let value = poSFDefn.extractIntData(pachSourceData: pachFieldData,
                                                     nMaxBytes: nBytesRemaining,
                                                     pnConsumedBytes: &bytesConsumed)

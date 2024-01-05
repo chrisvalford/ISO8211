@@ -40,6 +40,7 @@
 		2F6A9C162B3C30F90079E931 /* DDFField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9C142B3C30F90079E931 /* DDFField.swift */; };
 		2F6A9C1B2B3C98970079E931 /* MoreMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9C1A2B3C98970079E931 /* MoreMath.swift */; };
 		2F6A9C1C2B3C98970079E931 /* MoreMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9C1A2B3C98970079E931 /* MoreMath.swift */; };
+		2FA092162B42CDB600E57D81 /* URL+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA092152B42CDB600E57D81 /* URL+.swift */; };
 		2FB770192B404A28005B37E4 /* DDFModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF22B3ADDB30079E931 /* DDFModule.swift */; };
 		2FB7701A2B404A31005B37E4 /* DDFRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF42B3ADF9D0079E931 /* DDFRecord.swift */; };
 		2FB7701B2B404A39005B37E4 /* DDFFieldDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF62B3ADFB20079E931 /* DDFFieldDefinition.swift */; };
@@ -94,6 +95,7 @@
 		2F6A9C112B3C2D720079E931 /* CatalogProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogProvider.swift; sourceTree = "<group>"; };
 		2F6A9C142B3C30F90079E931 /* DDFField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDFField.swift; sourceTree = "<group>"; };
 		2F6A9C1A2B3C98970079E931 /* MoreMath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoreMath.swift; sourceTree = "<group>"; };
+		2FA092152B42CDB600E57D81 /* URL+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+.swift"; sourceTree = "<group>"; };
 		2FB770662B409F38005B37E4 /* DDFSubfield.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DDFSubfield.swift; sourceTree = "<group>"; };
 		2FB770692B417D24005B37E4 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -210,6 +212,7 @@
 				2F6A9BFE2B3AE1E30079E931 /* Sequence+.swift */,
 				2F6A9BFB2B3AE1CA0079E931 /* UInt8+.swift */,
 				2F6A9C042B3AE2C30079E931 /* String+.swift */,
+				2FA092152B42CDB600E57D81 /* URL+.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -360,6 +363,7 @@
 				2F6A9BCC2B3ADD050079E931 /* ISO8211.xcdatamodeld in Sources */,
 				2F6A9BF72B3ADFB20079E931 /* DDFFieldDefinition.swift in Sources */,
 				2F6A9C052B3AE2C30079E931 /* String+.swift in Sources */,
+				2FA092162B42CDB600E57D81 /* URL+.swift in Sources */,
 				2F6A9BFC2B3AE1CA0079E931 /* UInt8+.swift in Sources */,
 				2F6A9C122B3C2D720079E931 /* CatalogProvider.swift in Sources */,
 				2F6A9BF12B3ADD740079E931 /* CatalogView.swift in Sources */,
