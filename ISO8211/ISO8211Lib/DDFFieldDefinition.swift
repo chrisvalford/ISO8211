@@ -8,28 +8,28 @@
 import Foundation
 
 public struct DDFFieldDefinition {
-    private var poModule: DDFModule?
+    private var module: DDFModule?
     private var tag = ""
     private var _fieldName = ""
     private var _arrayDescr = ""
     private var _formatControls = ""
     private var repeatingSubfields = false
     private var fixedWidth = 0    // zero if variable.
-    private var _data_struct_code: DDF_data_struct_code = .dsc_elementary
-    private var _data_type_code: DDF_data_type_code = .dtc_char_string
+    private var dataStructCode: DataStructCode = .elementary
+    private var dataTypeCode: DataTypeCode = .charString
     private(set) var subfieldCount = 0
-    private(set) var ddfSubfieldDefinitions: [DDFSubfieldDefinition] = []
+    private(set) var subfieldDefinitions: [DDFSubfieldDefinition] = []
 
-    public mutating func initialize(poModuleIn: DDFModule,
-                                    tagIn: String,
-                                    nFieldEntrySize: Int,
-                                    pachFieldArea: Data) -> Bool {
-        var iFDOffset = poModuleIn.fieldControlLength
+    public mutating func initialize(module: DDFModule,
+                                    tag: String,
+                                    fieldEntrySize: Int,
+                                    data: Data) -> Bool {
+        var iFDOffset = module.fieldControlLength
         var nCharsConsumed = 0
-        poModule = poModuleIn
-        tag = tagIn
+        self.module = module
+        self.tag = tag
 
-        guard let dataStr = String(data: pachFieldArea, encoding: .utf8) else {
+        guard let dataStr = String(data: data, encoding: .utf8) else {
             print("Failed to get string from pachFieldData")
             return false
         }
@@ -37,54 +37,54 @@ public struct DDFFieldDefinition {
         // Set the data struct and type codes.
         switch dataStr[0] {
         case "0":
-            _data_struct_code = .dsc_elementary
+            dataStructCode = .elementary
 
         case "1":
-            _data_struct_code = .dsc_vector
+            dataStructCode = .vector
 
         case "2":
-            _data_struct_code = .dsc_array
+            dataStructCode = .array
 
         case "3":
-            _data_struct_code = .dsc_concatenated
+            dataStructCode = .concatenated
 
         default:
-            print("Unrecognised data_struct_code value \(pachFieldArea[0]).")
+            print("Unrecognised data_struct_code value \(data[0]).")
             print("Field \(tag) initialization incorrect.")
-            _data_struct_code = .dsc_elementary
+            dataStructCode = .elementary
         }
 
         switch(dataStr[1]) {
         case "0":
-            _data_type_code = .dtc_char_string
+            dataTypeCode = .charString
 
         case "1":
-            _data_type_code = .dtc_implicit_point
+            dataTypeCode = .implicitPoint
 
         case "2":
-            _data_type_code = .dtc_explicit_point
+            dataTypeCode = .explicitPoint
 
         case "3":
-            _data_type_code = .dtc_explicit_point_scaled
+            dataTypeCode = .explicitPointScaled
 
         case "4":
-            _data_type_code = .dtc_char_bit_string
+            dataTypeCode = .charBitString
 
         case "5":
-            _data_type_code = .dtc_bit_string
+            dataTypeCode = .bitString
 
         case "6":
-            _data_type_code = .dtc_mixed_data_type
+            dataTypeCode = .mixedDataType
 
         default:
-            print("Unrecognised data_type_code value \(pachFieldArea[1]).")
+            print("Unrecognised data_type_code value \(data[1]).")
             print("Field \(tag) initialization incorrect.")
-            _data_type_code = .dtc_char_string
+            dataTypeCode = .charString
         }
 
         // Capture the field name, description (sub field names), and format statements.
         var result = DDFUtils.fetchVariable(source: dataStr.substring(from: iFDOffset),
-                                            maxChars: nFieldEntrySize - iFDOffset,
+                                            maxChars: fieldEntrySize - iFDOffset,
                                             delimiter1: UInt8(DDF_UNIT_TERMINATOR),
                                             delimiter2: UInt8(DDF_FIELD_TERMINATOR),
                                             consumedChars: nCharsConsumed)
@@ -93,7 +93,7 @@ public struct DDFFieldDefinition {
         _fieldName = result.1 ?? ""
 
         result = DDFUtils.fetchVariable(source: dataStr.substring(from: iFDOffset),
-                                        maxChars: nFieldEntrySize - iFDOffset,
+                                        maxChars: fieldEntrySize - iFDOffset,
                                         delimiter1: UInt8(DDF_UNIT_TERMINATOR),
                                         delimiter2: UInt8(DDF_FIELD_TERMINATOR),
                                         consumedChars: nCharsConsumed)
@@ -102,14 +102,14 @@ public struct DDFFieldDefinition {
         _arrayDescr = result.1 ?? ""
 
         result = DDFUtils.fetchVariable(source: dataStr.substring(from: iFDOffset),
-                                        maxChars: nFieldEntrySize - iFDOffset,
+                                        maxChars: fieldEntrySize - iFDOffset,
                                         delimiter1: UInt8(DDF_UNIT_TERMINATOR),
                                         delimiter2: UInt8(DDF_FIELD_TERMINATOR),
                                         consumedChars: nCharsConsumed)
         _formatControls = result.1 ?? ""
 
         // Parse the subfield info.
-        if _data_struct_code != .dsc_elementary {
+        if dataStructCode != .elementary {
             if buildSubfields() == false {
                 return false
             }
@@ -141,7 +141,7 @@ public struct DDFFieldDefinition {
         if i < 0 || i >= subfieldCount {
             return nil
         }
-        return ddfSubfieldDefinitions[i]
+        return subfieldDefinitions[i]
     }
 
     /**
@@ -253,7 +253,7 @@ public struct DDFFieldDefinition {
                 print("Got more formats than subfields for field \(tag).")
                 break
             }
-            if !ddfSubfieldDefinitions[iFormatItem].setFormat(pszPastPrefix) {
+            if !subfieldDefinitions[iFormatItem].setFormat(pszPastPrefix) {
                 return false
             }
             iFormatItem += 1
@@ -270,11 +270,11 @@ public struct DDFFieldDefinition {
         // This is important for repeating fields.
         fixedWidth = 0
         for i in 0..<subfieldCount {
-            if ddfSubfieldDefinitions[i].formatWidth == 0 {
+            if subfieldDefinitions[i].formatWidth == 0 {
                 fixedWidth = 0
                 break
             } else {
-                fixedWidth += ddfSubfieldDefinitions[i].formatWidth
+                fixedWidth += subfieldDefinitions[i].formatWidth
             }
         }
         return true
@@ -283,7 +283,7 @@ public struct DDFFieldDefinition {
     private mutating func addSubfield(_ newSubfieldDefinition: DDFSubfieldDefinition,
                               dontAddToFormat: Bool) {
         subfieldCount += 1
-        ddfSubfieldDefinitions.append(newSubfieldDefinition)
+        subfieldDefinitions.append(newSubfieldDefinition)
         if dontAddToFormat {
             return
         }

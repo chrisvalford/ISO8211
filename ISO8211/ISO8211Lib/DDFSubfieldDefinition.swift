@@ -12,8 +12,8 @@ public struct DDFSubfieldDefinition {
     private(set) var name = ""  // a.k.a. subfield mnemonic
     private var formatString = ""
 
-    private(set) var eType: DDFDataType = .DDFString
-    private var eBinaryFormat: DDFBinaryFormat = .notBinary
+    private(set) var dataType: DataType = .stringType
+    private(set) var binaryFormat: BinaryFormat = .notBinary
 
     // isVariable determines whether we using the
     // formatDelimeter (true), or the fixed width (false).
@@ -26,21 +26,6 @@ public struct DDFSubfieldDefinition {
     
     private var maximumBufferCharacters = 0
     private var asciiBuffer: [UInt8] = []
-
-    public func getBinaryFormat() -> DDFBinaryFormat {
-        return eBinaryFormat
-    }
-
-    /**
-     * Get the general type of the subfield.  This can be used to
-     * determine which of ExtractFloatData(), ExtractIntData() or
-     * ExtractStringData() should be used.
-     * - Returns The subfield type.  One of DDFInt, DDFFloat, DDFString or
-     * DDFBinaryString.
-     */
-    public func getType() -> DDFDataType {
-        return eType
-    }
 
     public func getFormat() -> String {
         return formatString
@@ -72,13 +57,13 @@ public struct DDFSubfieldDefinition {
         // Interpret the format string.
         switch formatString[0] {
         case "A", "C": // It isn't clear to me how this is different than 'A'
-            eType = .DDFString
+            dataType = .stringType
 
         case "R":
-            eType = .DDFFloat
+            dataType = .floatType
 
         case "I", "S":
-            eType = .DDFInt
+            dataType = .intType
 
         case "B", "b":
             // Is the width expressed in bits? (is it a bitstring)
@@ -89,23 +74,23 @@ public struct DDFSubfieldDefinition {
                     let value = Int(bytesStr) ?? 0
                     assert(value % 8 == 0)
                     formatWidth = value / 8
-                    eBinaryFormat = .signedInteger
+                    binaryFormat = .signedInteger
                     
                     if formatWidth < 5 {
-                        eType = .DDFInt
+                        dataType = .intType
                     } else {
-                        eType = .DDFBinaryString
+                        dataType = .binaryStringType
                     }
                 } else { // or do we have a binary type indicator? (is it binary)
                     var charValue = formatString[1].asciiValue!
                     charValue -= "0".byte
-                    eBinaryFormat = DDFBinaryFormat(rawValue: Int(charValue))!
+                    binaryFormat = BinaryFormat(rawValue: Int(charValue))!
                     let bytesStr = formatString.substring(from: 1) // was 2
                     formatWidth = Int(bytesStr) ?? 0
-                    if eBinaryFormat == .signedInteger || eBinaryFormat == .unsignedInteger {
-                        eType = .DDFInt
+                    if binaryFormat == .signedInteger || binaryFormat == .unsignedInteger {
+                        dataType = .intType
                     } else {
-                        eType = .DDFFloat
+                        dataType = .floatType
                     }
                 }
             }
@@ -234,7 +219,7 @@ public struct DDFSubfieldDefinition {
             //            }
 
             // Interpret the bytes of data.
-            switch eBinaryFormat {
+            switch binaryFormat {
 //            case .unsignedInteger, .signedInteger, .floatReal:
 //                let n = formatString[0] == "B" ? MoreMath.buildIntegerBE(bytevec: abyData, offset: 0) : MoreMath.buildIntegerLE(bytevec: abyData, offset: 0)
 //                return Double(n)
@@ -331,7 +316,7 @@ public struct DDFSubfieldDefinition {
             }
 
             // Interpret the bytes of data.
-            switch eBinaryFormat {
+            switch binaryFormat {
 //            case .unsignedInteger, .signedInteger, .floatReal:
 //                let n = formatString[0] == "B" ? MoreMath.buildIntegerBE(bytevec: abyData, offset: 0) : MoreMath.buildIntegerLE(bytevec: abyData, offset: 0)
 //                return n

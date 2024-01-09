@@ -9,55 +9,32 @@ import Foundation
 
 public struct DDFField {
 
-    private var poDefn: DDFFieldDefinition?
-    private var nDataSize: Int = 0
-    private var asciiData: Data
+    private(set) var fieldDefinition: DDFFieldDefinition?
+    private(set) var dataSize: Int = 0
+    private(set) var data: Data
 
-
-    public mutating func initialize(poDefnIn: DDFFieldDefinition,
+    public mutating func initialize(fieldDefinition: DDFFieldDefinition,
                            asciiDataIn: Data,
-                        nDataSizeIn: Int) {
-        asciiData = asciiDataIn
-        nDataSize = nDataSizeIn
-        poDefn = poDefnIn
+                        dataSize: Int) {
+        data = asciiDataIn
+        self.dataSize = dataSize
+        self.fieldDefinition = fieldDefinition
     }
 
     public init(poDefnIn: DDFFieldDefinition,
                            asciiDataIn: Data,
-                        nDataSizeIn: Int) {
-        asciiData = asciiDataIn
-        nDataSize = nDataSizeIn
-        poDefn = poDefnIn
+                        dataSize: Int) {
+        data = asciiDataIn
+        self.dataSize = dataSize
+        fieldDefinition = poDefnIn
     }
 
     /**
-     * Return the pointer to the entire data block for this record. This
-     * is an internal copy, and shouldn't be freed by the application.
-     */
-    public func getData() -> Data {
-        return asciiData
-    }
-
-    /** Return the number of bytes in the data block returned by getData(). */
-    public func getDataSize() -> Int {
-        return nDataSize
-    }
-
-    /** Fetch the corresponding DDFFieldDefinition. */
-    public func getFieldDefinition() -> DDFFieldDefinition? {
-        return poDefn
-    }
-
-    /**
-     * How many times do the subfields of this record repeat?  This
-     * will always be one for non-repeating fields.
-     *
-     * - Returns The number of times that the subfields of this record occur
+     * The number of times that the subfields of this record occur
      * in this record.  This will be one for non-repeating fields.
-     *
      */
-    public func getRepeatCount() -> Int {
-        guard let poDefn = poDefn else {
+    public var repeatCount: Int {
+        guard let poDefn = fieldDefinition else {
             return 0
         }
 
@@ -68,14 +45,14 @@ public struct DDFField {
     // The occurance count depends on how many copies of this
     // field's list of subfields can fit into the data space.
         if poDefn.getFixedWidth() != 0 {
-            return nDataSize / poDefn.getFixedWidth()
+            return dataSize / poDefn.getFixedWidth()
         }
 
     // Note that it may be legal to have repeating variable width
     // subfields, but I don't have any samples, so I ignore it for
     // now.
-        var iOffset = 0
-        var iRepeatCount = 1
+        var offset = 0
+        var repeatCount = 1
 
         while(true) {
             for iSF in 0..<poDefn.subfieldCount {
@@ -85,25 +62,24 @@ public struct DDFField {
                     continue
                 }
 
-                if poThisSFDefn.formatWidth > nDataSize - iOffset {
+                if poThisSFDefn.formatWidth > dataSize - offset {
                     nBytesConsumed = poThisSFDefn.formatWidth
                 } else {
-                    let bytes: [UInt8] = Array(asciiData)
-                    let subBytes = bytes[iOffset...]
+                    let bytes: [UInt8] = Array(data)
+                    let subBytes = bytes[offset...]
                     _ = poThisSFDefn.getDataLength(pachSourceData: Data(subBytes),
-                                               nMaxBytes: nDataSize - iOffset,
+                                               nMaxBytes: dataSize - offset,
                                                pnConsumedBytes: &nBytesConsumed)
                 }
-                iOffset += nBytesConsumed!
-                if iOffset > nDataSize {
-                    return iRepeatCount - 1
+                offset += nBytesConsumed!
+                if offset > dataSize {
+                    return repeatCount - 1
                 }
             }
-            if iOffset > nDataSize - 2 {
-                return iRepeatCount
+            if offset > dataSize - 2 {
+                return repeatCount
             }
-            iRepeatCount += 1
+            repeatCount += 1
         }
     }
-
 }

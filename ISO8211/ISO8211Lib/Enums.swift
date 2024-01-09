@@ -7,31 +7,31 @@
 
 import Foundation
 
-public enum DDF_data_struct_code {
-    case dsc_elementary,
-         dsc_vector,
-         dsc_array,
-         dsc_concatenated
+public enum DataStructCode {
+    case elementary,
+         vector,
+         array,
+         concatenated
 }
 
-public enum DDF_data_type_code {
-    case dtc_char_string,
-         dtc_implicit_point,
-         dtc_explicit_point,
-         dtc_explicit_point_scaled,
-         dtc_char_bit_string,
-         dtc_bit_string,
-         dtc_mixed_data_type
+public enum DataTypeCode {
+    case charString,
+         implicitPoint,
+         explicitPoint,
+         explicitPointScaled,
+         charBitString,
+         bitString,
+         mixedDataType
 }
 
-public enum DDFDataType {
-    case DDFInt,
-         DDFFloat,
-         DDFString,
-         DDFBinaryString
+public enum DataType {
+    case intType,
+         floatType,
+         stringType,
+         binaryStringType
 }
 
-public enum DDFBinaryFormat: Int  {
+public enum BinaryFormat: Int  {
     case notBinary = 0,
          unsignedInteger = 1,
          signedInteger = 2,

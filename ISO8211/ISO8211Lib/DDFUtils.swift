@@ -7,9 +7,6 @@
 
 import Foundation
 
-let DDF_FIELD_TERMINATOR = 30
-let DDF_UNIT_TERMINATOR = 31
-
 public struct DDFUtils {
 
     /**

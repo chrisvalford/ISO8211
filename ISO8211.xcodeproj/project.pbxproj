@@ -43,14 +43,14 @@
 		2FB770192B404A28005B37E4 /* DDFModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF22B3ADDB30079E931 /* DDFModule.swift */; };
 		2FB7701A2B404A31005B37E4 /* DDFRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF42B3ADF9D0079E931 /* DDFRecord.swift */; };
 		2FB7701B2B404A39005B37E4 /* DDFFieldDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF62B3ADFB20079E931 /* DDFFieldDefinition.swift */; };
-		2FB770672B409F38005B37E4 /* DDFSubfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770662B409F38005B37E4 /* DDFSubfield.swift */; };
-		2FB770682B409F38005B37E4 /* DDFSubfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770662B409F38005B37E4 /* DDFSubfield.swift */; };
 		2FB7706A2B417D24005B37E4 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770692B417D24005B37E4 /* Enums.swift */; };
 		2FB7706B2B417D24005B37E4 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770692B417D24005B37E4 /* Enums.swift */; };
 		2FD2C9762B4C673A00F20F8B /* DDFHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C9752B4C673A00F20F8B /* DDFHeader.swift */; };
 		2FD2C9772B4C673A00F20F8B /* DDFHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C9752B4C673A00F20F8B /* DDFHeader.swift */; };
 		2FD2C9792B4C677400F20F8B /* Data+Values.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C9782B4C677400F20F8B /* Data+Values.swift */; };
 		2FD2C97A2B4C677400F20F8B /* Data+Values.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C9782B4C677400F20F8B /* Data+Values.swift */; };
+		2FD2C97D2B4D6AD900F20F8B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C97C2B4D6AD900F20F8B /* Constants.swift */; };
+		2FD2C97E2B4D6AD900F20F8B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C97C2B4D6AD900F20F8B /* Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,10 +98,10 @@
 		2F6A9C142B3C30F90079E931 /* DDFField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDFField.swift; sourceTree = "<group>"; };
 		2F6A9C1A2B3C98970079E931 /* MoreMath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoreMath.swift; sourceTree = "<group>"; };
 		2FA092152B42CDB600E57D81 /* URL+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+.swift"; sourceTree = "<group>"; };
-		2FB770662B409F38005B37E4 /* DDFSubfield.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DDFSubfield.swift; sourceTree = "<group>"; };
 		2FB770692B417D24005B37E4 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		2FD2C9752B4C673A00F20F8B /* DDFHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DDFHeader.swift; sourceTree = "<group>"; };
 		2FD2C9782B4C677400F20F8B /* Data+Values.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Values.swift"; sourceTree = "<group>"; };
+		2FD2C97C2B4D6AD900F20F8B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,12 +199,12 @@
 				2F6A9C142B3C30F90079E931 /* DDFField.swift */,
 				2F6A9BF42B3ADF9D0079E931 /* DDFRecord.swift */,
 				2F6A9BF62B3ADFB20079E931 /* DDFFieldDefinition.swift */,
-				2FB770662B409F38005B37E4 /* DDFSubfield.swift */,
 				2F6A9C0A2B3B6B170079E931 /* DDFSubfieldDefinition.swift */,
 				2F6A9C072B3AEC010079E931 /* DDFUtils.swift */,
 				2F6A9C1A2B3C98970079E931 /* MoreMath.swift */,
 				2F6A9BF82B3AE0B60079E931 /* ISO8211Error.swift */,
 				2FB770692B417D24005B37E4 /* Enums.swift */,
+				2FD2C97C2B4D6AD900F20F8B /* Constants.swift */,
 			);
 			path = ISO8211Lib;
 			sourceTree = "<group>";
@@ -365,7 +365,7 @@
 				2FB7706A2B417D24005B37E4 /* Enums.swift in Sources */,
 				2F6A9BF32B3ADDB30079E931 /* DDFModule.swift in Sources */,
 				2F6A9C022B3AE24D0079E931 /* Array+.swift in Sources */,
-				2FB770672B409F38005B37E4 /* DDFSubfield.swift in Sources */,
+				2FD2C97D2B4D6AD900F20F8B /* Constants.swift in Sources */,
 				2F6A9BC92B3ADD050079E931 /* Persistence.swift in Sources */,
 				2F6A9C1B2B3C98970079E931 /* MoreMath.swift in Sources */,
 				2F6A9BFF2B3AE1E30079E931 /* Sequence+.swift in Sources */,
@@ -390,6 +390,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2FB7701B2B404A39005B37E4 /* DDFFieldDefinition.swift in Sources */,
+				2FD2C97E2B4D6AD900F20F8B /* Constants.swift in Sources */,
 				2F6A9C092B3AEC010079E931 /* DDFUtils.swift in Sources */,
 				2FB770192B404A28005B37E4 /* DDFModule.swift in Sources */,
 				2F6A9C002B3AE1E30079E931 /* Sequence+.swift in Sources */,
@@ -400,7 +401,6 @@
 				2F6A9C132B3C2D720079E931 /* CatalogProvider.swift in Sources */,
 				2F6A9C162B3C30F90079E931 /* DDFField.swift in Sources */,
 				2FB7701A2B404A31005B37E4 /* DDFRecord.swift in Sources */,
-				2FB770682B409F38005B37E4 /* DDFSubfield.swift in Sources */,
 				2F6A9C1C2B3C98970079E931 /* MoreMath.swift in Sources */,
 				2FD2C9772B4C673A00F20F8B /* DDFHeader.swift in Sources */,
 				2F6A9C062B3AE2C30079E931 /* String+.swift in Sources */,

@@ -18,15 +18,13 @@ public struct DDFModule {
     private var fieldDefinitionCount = 0
     private var fieldDefinitions: [DDFFieldDefinition] = []
 
-    private var ddfRecord: DDFRecord?
+    private var record: DDFRecord?
 
     private var cloneCount = 0
     private var maximumCloneCount = 0
     private var clones: [DDFRecord] = []
 
     public mutating func open(url: URL) throws {
-        let nLeaderSize = 24
-
         if fileHandle != nil {
             close()
         }
@@ -42,8 +40,8 @@ public struct DDFModule {
         }
 
         // Read the first 24 bytes
-        var data: Data = fileHandle.readData(ofLength: nLeaderSize)
-        if data.count != nLeaderSize {
+        var data: Data = fileHandle.readData(ofLength: LEADER_SIZE)
+        if data.count != LEADER_SIZE {
             throw ISO8211Error.invalidHeaderLength
         }
 
@@ -55,33 +53,33 @@ public struct DDFModule {
         }
 
         // Verify that this appears to be a valid DDF file.
-        var bValid = header.sourceValid
+        var isValid = header.sourceValid
 
-        if bValid == true {
+        if isValid == true {
             // Extract information from leader.
             do {
                 try header.parse()
             }
         }
-        bValid = header.dataValid
+        isValid = header.dataValid
 
         //  If the header is invalid, then clean up, report the error and return.
-        if bValid == false {
+        if isValid == false {
             close()
             print("The leader data is not valid!")
             return
         }
 
         // Read the whole record info memory.
-        let moreData = fileHandle.readData(ofLength: header.recordLength-nLeaderSize)
-        if moreData.count != header.recordLength - nLeaderSize {
+        let moreData = fileHandle.readData(ofLength: header.recordLength-LEADER_SIZE)
+        if moreData.count != header.recordLength - LEADER_SIZE {
                 throw ISO8211Error.invalidHeaderData
         }
         data.append(contentsOf: moreData)
 
         // First make a pass counting the directory entries.
         var fieldDefinitionCount = 0
-        for i in stride(from: nLeaderSize, to: header.recordLength, by: header.fieldEntryWidth) {
+        for i in stride(from: LEADER_SIZE, to: header.recordLength, by: header.fieldEntryWidth) {
             if data[i] == DDF_FIELD_TERMINATOR {
                 break
             }
@@ -91,23 +89,27 @@ public struct DDFModule {
         // Allocate, and read field definitions.
         for i in 0..<fieldDefinitionCount {
             do {
-                var nEntryOffset = nLeaderSize + i*header.fieldEntryWidth
-                var nFieldLength = 0
-                var nFieldPos = 0
-                let tagBytes = data.subdata(in: Range(nEntryOffset...(nEntryOffset+header.sizeFieldTag-1)))
+                var entryOffset = LEADER_SIZE + i*header.fieldEntryWidth
+                var fieldLength = 0
+                var fieldPosition = 0
+
+                let tagBytes = data.subdata(in: Range(entryOffset...(entryOffset+header.sizeFieldTag-1)))
                 let szTag = try tagBytes.stringValue()
-                nEntryOffset += header.sizeFieldTag
-                let fieldLengthBytes = data.subdata(in: Range(nEntryOffset...(nEntryOffset+header.sizeFieldLength-1)))
-                nFieldLength = try fieldLengthBytes.intValue()
-                nEntryOffset += header.sizeFieldLength
-                let fieldPositionBytes = data.subdata(in: Range(nEntryOffset...(nEntryOffset+header.sizeFieldPosition-1)))
-                nFieldPos = try fieldPositionBytes.intValue()
+                entryOffset += header.sizeFieldTag
+
+                let fieldLengthBytes = data.subdata(in: Range(entryOffset...(entryOffset+header.sizeFieldLength-1)))
+                fieldLength = try fieldLengthBytes.intValue()
+                entryOffset += header.sizeFieldLength
+
+                let fieldPositionBytes = data.subdata(in: Range(entryOffset...(entryOffset+header.sizeFieldPosition-1)))
+                fieldPosition = try fieldPositionBytes.intValue()
+
                 var fieldDefinition = DDFFieldDefinition()
-                let subBytes = data.suffix(from: header.fieldAreaStart+nFieldPos)
-                if fieldDefinition.initialize(poModuleIn: self,
-                                              tagIn: szTag,
-                                              nFieldEntrySize: nFieldLength,
-                                              pachFieldArea: subBytes) == true {
+                let subBytes = data.suffix(from: header.fieldAreaStart+fieldPosition)
+                if fieldDefinition.initialize(module: self,
+                                              tag: szTag,
+                                              fieldEntrySize: fieldLength,
+                                              data: subBytes) == true {
                     fieldDefinitions.append(fieldDefinition)
                     fieldDefinitionCount += 1
                 }
@@ -147,7 +149,7 @@ public struct DDFModule {
                 print(error)
             }
         }
-        ddfRecord = nil
+        record = nil
         clones.removeAll()
         cloneCount = 0
         maximumCloneCount = 0
@@ -161,11 +163,11 @@ public struct DDFModule {
      * - Returns A DDFRecord, or nil if a read error, or end of file occurs.
      */
     public mutating func readRecord() -> DDFRecord? {
-        if ddfRecord == nil {
-            ddfRecord = DDFRecord(self)
+        if record == nil {
+            record = DDFRecord(self)
         }
-        if ddfRecord?.read() == true {
-            return ddfRecord
+        if record?.read() == true {
+            return record
         } else {
             return nil
         }
@@ -183,13 +185,7 @@ public struct DDFModule {
      * - Returns A DDFFieldDefinition, or NULL if none matching the name are found.
      */
 
-    public func findFieldDefinition(fieldName: String) -> DDFFieldDefinition? {
-        return fieldDefinitions.first(where: { $0.fieldName == fieldName })
-//        for i in 0..<fieldDefinitionCount {
-//            if fieldName == fieldDefinitions[i].getName() {
-//                return fieldDefinitions[i]
-//            }
-//        }
-//        return nil
+    public func findFieldDefinition(tag: String) -> DDFFieldDefinition? {
+        return fieldDefinitions.first(where: { $0.fieldName == tag })
     }
 }
