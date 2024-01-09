@@ -17,14 +17,14 @@ public struct DDFFieldDefinition {
     private var fixedWidth = 0    // zero if variable.
     private var _data_struct_code: DDF_data_struct_code = .dsc_elementary
     private var _data_type_code: DDF_data_type_code = .dtc_char_string
-    private var subfieldCount = 0
-    private var ddfSubfieldDefinitions: [DDFSubfieldDefinition] = []
+    private(set) var subfieldCount = 0
+    private(set) var ddfSubfieldDefinitions: [DDFSubfieldDefinition] = []
 
     public mutating func initialize(poModuleIn: DDFModule,
                                     tagIn: String,
                                     nFieldEntrySize: Int,
                                     pachFieldArea: Data) -> Bool {
-        var iFDOffset = poModuleIn.getFieldControlLength()
+        var iFDOffset = poModuleIn.fieldControlLength
         var nCharsConsumed = 0
         poModule = poModuleIn
         tag = tagIn
@@ -125,10 +125,10 @@ public struct DDFFieldDefinition {
     /** Fetch a pointer to the field name (tag).
      * - Returns this is an internal copy and shouldn't be freed.
      */
-    func getName() -> String { return tag }
+    var fieldName: String { return tag }
 
     /** Fetch a longer description of this field. */
-    func getDescription() -> String { return _fieldName }
+    var fieldDescription: String { return _fieldName }
 
     /**
      * Fetch a subfield by index.
@@ -143,9 +143,6 @@ public struct DDFFieldDefinition {
         }
         return ddfSubfieldDefinitions[i]
     }
-
-    /** Get the number of subfields. */
-    func getSubfieldCount() -> Int { return subfieldCount }
 
     /**
      * Get the width of this field.  This function isn't normally used
@@ -273,11 +270,11 @@ public struct DDFFieldDefinition {
         // This is important for repeating fields.
         fixedWidth = 0
         for i in 0..<subfieldCount {
-            if ddfSubfieldDefinitions[i].getWidth() == 0 {
+            if ddfSubfieldDefinitions[i].formatWidth == 0 {
                 fixedWidth = 0
                 break
             } else {
-                fixedWidth += ddfSubfieldDefinitions[i].getWidth()
+                fixedWidth += ddfSubfieldDefinitions[i].formatWidth
             }
         }
         return true
@@ -330,7 +327,7 @@ public struct DDFFieldDefinition {
      * Give a string like "3A,2C" return "3A".
      */
     func extractSubstring(source: String) -> String {
-        var pszSrc: [UInt8] = Array(source.utf8)
+        let pszSrc: [UInt8] = Array(source.utf8)
         var nBracket = 0
         var pszReturn: [UInt8] = []
         var i = 0
@@ -362,7 +359,7 @@ public struct DDFFieldDefinition {
      * out.
      */
     func expandFormat(source: String) -> String {
-        var pszSrc: [UInt8] = Array(source.utf8)
+        let pszSrc: [UInt8] = Array(source.utf8)
         var szDest: [UInt8] = []
         var iSrc = 0
         var nRepeat = 0

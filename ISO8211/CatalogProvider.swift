@@ -36,7 +36,6 @@ class CatalogProvider: ObservableObject {
     func readRecords() {
         var poRecord: DDFRecord?
         var iRecord = 0
-        var bytesRead = 0
 
         repeat {
             poRecord = module.readRecord()
@@ -65,7 +64,7 @@ class CatalogProvider: ObservableObject {
         }
 
         // Report general information about the field.
-        print("(GI)    Field name: \(poFieldDefn.getName()): description: \(poFieldDefn.getDescription())")
+        print("(GI)    Field name: \(poFieldDefn.fieldName): description: \(poFieldDefn.fieldDescription)")
 
         // Get this fields raw data.  We will move through
         // it consuming data as we report subfield values.
@@ -78,12 +77,8 @@ class CatalogProvider: ObservableObject {
         for _ in 0..<poField.getRepeatCount() {
             // Loop over all the subfields of this field, advancing
             // the data pointer as we consume data.
-            for iSF in 0..<poFieldDefn.getSubfieldCount() {
-                guard let poSFDefn: DDFSubfieldDefinition = poFieldDefn.getSubfield(at: iSF) else {
-                    print("Could not find subfield definition")
-                    break
-                }
-                let nBytesConsumed = viewSubfield(poSFDefn: poSFDefn,
+            for subfieldDefinition in poFieldDefn.ddfSubfieldDefinitions {
+                let nBytesConsumed = viewSubfield(poSFDefn: subfieldDefinition,
                                                   pachFieldData: pachFieldData,
                                                   nBytesRemaining: nBytesRemaining)
                 nBytesRemaining -= nBytesConsumed

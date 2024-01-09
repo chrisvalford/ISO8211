@@ -12,4 +12,7 @@ enum ISO8211Error: Error {
     case invalidIntegerValue
     case invalidHeaderLength
     case invalidHeaderData
+    case nilString
+    case nilInteger
+    case nilFloat
 }

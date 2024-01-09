@@ -44,6 +44,7 @@ struct CatalogView: View {
                     .frame(width: 100)
             }
             .padding(.vertical)
+            Text(message)
         }
     }
 }

@@ -80,8 +80,11 @@ public class DDFRecord {
         // the previous records data without disturbing the rest of the
         // record.
         var data: Data?
+        guard let fp = poModule.fileHandle else {
+            return false
+        }
         do {
-            data = try poModule.getFP().read(upToCount: nDataSize - nFieldOffset)
+            data = try fp.read(upToCount: nDataSize - nFieldOffset)
         } catch {
             print(error.localizedDescription)
             return false
@@ -90,7 +93,7 @@ public class DDFRecord {
         asciiData.insert(contentsOf: data, at: nFieldOffset)
         if data.count != (nDataSize - nFieldOffset)
             && data.count == 0
-            && (try? poModule.getFP().availableData) == nil {
+            && fp.availableData.count == 0 {
             return false
         } else if data.count != (nDataSize - nFieldOffset) {
             print("Data record is short on DDF file.")
@@ -119,14 +122,17 @@ public class DDFRecord {
         // read the 24 byte leader.
         var achLeader: Data
         var data: Data?
+        guard let fp = poModule.fileHandle else {
+            return false
+        }
         do {
-            data = try poModule.getFP().read(upToCount: nLeaderSize)
+            data = try fp.read(upToCount: nLeaderSize)
         } catch {
             print(error.localizedDescription)
             return false
         }
         
-        if data?.count == 0 && (try? poModule.getFP().availableData) == nil {
+        if data?.count == 0 && fp.availableData.count == 0 {
             return false
         } else if data?.count != nLeaderSize {
             print("Leader is short on DDF file.")
@@ -169,7 +175,7 @@ public class DDFRecord {
             // read the remainder of the record.
             nDataSize = _recLength - nLeaderSize
             do {
-                data = try poModule.getFP().read(upToCount: nDataSize)
+                data = try fp.read(upToCount: nDataSize)
             } catch {
                 print(error.localizedDescription)
                 return false
@@ -186,7 +192,7 @@ public class DDFRecord {
             while(asciiData[nDataSize-1] != DDF_FIELD_TERMINATOR) {
                 nDataSize += 1
                 do {
-                    let newData = try poModule.getFP().read(upToCount: 1)
+                    let newData = try fp.read(upToCount: 1)
                     asciiData += newData!
                 } catch {
                     print(error.localizedDescription)
@@ -219,7 +225,7 @@ public class DDFRecord {
                 nFieldPos = DDFUtils.DDFScanInt(source: asciiData, fromIndex: nEntryOffset, maxChars: _sizeFieldPos) ?? 0
                 
                 // Find the corresponding field in the module directory.
-                guard let poFieldDefn: DDFFieldDefinition = poModule.findFieldDefn(fieldName: szTag) else {
+                guard let poFieldDefn: DDFFieldDefinition = poModule.findFieldDefinition(fieldName: szTag) else {
                     print("(1) Undefined field named: \(szTag) encountered in data record.")
                     return false
                 }
@@ -256,7 +262,7 @@ public class DDFRecord {
             // and keep on reading...
             repeat {
                 do {
-                    data = try poModule.getFP().read(upToCount: nFieldEntryWidth)
+                    data = try fp.read(upToCount: nFieldEntryWidth)
                     tmpBuf = data!
                 } catch {
                     print(error.localizedDescription)
@@ -282,9 +288,10 @@ public class DDFRecord {
             
             // Now, rewind a little.  Only the TERMINATOR should have been read:
             let rewindSize = nFieldEntryWidth - 1
-            var fp: FileHandle
+            guard let fp = poModule.fileHandle else {
+                return false
+            }
             do {
-                fp = try poModule.getFP()
                 let pos = try fp.offset() - UInt64(rewindSize)
                 try fp.seek(toOffset: pos)
             } catch {
@@ -303,7 +310,7 @@ public class DDFRecord {
 
                 // read an Entry:
                 do {
-                    data = try poModule.getFP().read(upToCount: nFieldLength)
+                    data = try fp.read(upToCount: nFieldLength)
                 } catch {
                     print(error.localizedDescription)
                     return false
@@ -343,7 +350,7 @@ public class DDFRecord {
                 nFieldPos = DDFUtils.DDFScanInt(source: asciiData, fromIndex: nEntryOffset, maxChars: _sizeFieldPos) ?? 0
                 
                 // Find the corresponding field in the module directory.
-                guard let poFieldDefn: DDFFieldDefinition = poModule.findFieldDefn(fieldName: szTag) else {
+                guard let poFieldDefn: DDFFieldDefinition = poModule.findFieldDefinition(fieldName: szTag) else {
                     print("(2) Undefined field named: \(szTag) encountered in data record.")
                     return false
                 }

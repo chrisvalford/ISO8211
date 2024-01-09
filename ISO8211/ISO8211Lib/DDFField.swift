@@ -78,15 +78,15 @@ public struct DDFField {
         var iRepeatCount = 1
 
         while(true) {
-            for iSF in 0..<poDefn.getSubfieldCount() {
+            for iSF in 0..<poDefn.subfieldCount {
                 var nBytesConsumed: Int? = 0
                 guard let poThisSFDefn: DDFSubfieldDefinition = poDefn.getSubfield(at: iSF) else {
                     print("Didn't find dubfield definition, looping")
                     continue
                 }
 
-                if poThisSFDefn.getWidth() > nDataSize - iOffset {
-                    nBytesConsumed = poThisSFDefn.getWidth()
+                if poThisSFDefn.formatWidth > nDataSize - iOffset {
+                    nBytesConsumed = poThisSFDefn.formatWidth
                 } else {
                     let bytes: [UInt8] = Array(asciiData)
                     let subBytes = bytes[iOffset...]

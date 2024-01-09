@@ -20,14 +20,12 @@ public struct DDFSubfieldDefinition {
     private var isVariable: Bool = true
 
     private var formatDelimeter = DDF_UNIT_TERMINATOR
-    private var formatWidth = 0
+
+    // zero for variable
+    private(set) var formatWidth = 0
+    
     private var maximumBufferCharacters = 0
     private var asciiBuffer: [UInt8] = []
-
-    /** Get the subfield width (zero for variable). */
-    public func getWidth() -> Int {
-        return formatWidth
-    } // zero for variable.
 
     public func getBinaryFormat() -> DDFBinaryFormat {
         return eBinaryFormat
@@ -99,8 +97,10 @@ public struct DDFSubfieldDefinition {
                         eType = .DDFBinaryString
                     }
                 } else { // or do we have a binary type indicator? (is it binary)
-                    eBinaryFormat = DDFBinaryFormat(rawValue: Int(formatString[1].asciiValue! - "0".byte))!
-                    let bytesStr = formatString.substring(from: 2)
+                    var charValue = formatString[1].asciiValue!
+                    charValue -= "0".byte
+                    eBinaryFormat = DDFBinaryFormat(rawValue: Int(charValue))!
+                    let bytesStr = formatString.substring(from: 1) // was 2
                     formatWidth = Int(bytesStr) ?? 0
                     if eBinaryFormat == .signedInteger || eBinaryFormat == .unsignedInteger {
                         eType = .DDFInt
@@ -167,9 +167,9 @@ public struct DDFSubfieldDefinition {
                                     pnConsumedBytes: &pnConsumedBytes)
 
         // Do we need to grow the buffer.
-        if maximumBufferCharacters < nLength+1 {
+        if maximumBufferCharacters < nLength { // +1 {
             asciiBuffer.removeAll()
-            maximumBufferCharacters = nLength+1;
+            maximumBufferCharacters = nLength // +1
             asciiBuffer = [UInt8](repeating: 0, count: maximumBufferCharacters)
         }
 
@@ -177,7 +177,7 @@ public struct DDFSubfieldDefinition {
         // will work for binary data.
         if nLength > 0 {
             let bytes: [UInt8] = Array(pachSourceData)
-            let subBytes = Array(bytes[...(nLength)]) //FIXME: one byte too long so -1
+            let subBytes = Array(bytes[...(nLength-1)]) //FIXME: one byte too long so -1
             asciiBuffer = subBytes
         }
         return asciiBuffer
@@ -215,7 +215,7 @@ public struct DDFSubfieldDefinition {
             return Double(bytesStr) ?? 0
 
         case "B", "b":
-            var abyData: [UInt8] = [0,0,0,0,0,0,0,0]
+            let abyData: [UInt8] = [0,0,0,0,0,0,0,0]
             assert(formatWidth <= nMaxBytes)
             if pnConsumedBytes != nil {
                 pnConsumedBytes = formatWidth
@@ -301,7 +301,7 @@ public struct DDFSubfieldDefinition {
             return Int(bytesStr) ?? 0
 
         case "B", "b":
-            var abyData = [UInt8](repeating: 0, count: 8)
+            var abyData = [UInt8](repeating: 0, count: 80)
             if formatWidth > nMaxBytes {
                 print("Attempt to extract int subfield \(name) with format \(formatString)")
                 print("failed as only \(nMaxBytes) bytes available.  Using zero.")
@@ -318,6 +318,10 @@ public struct DDFSubfieldDefinition {
             if formatString[0] == "B" || formatString[0] == "b" {
                 for i in 0..<formatWidth {
                     let source: [UInt8] = Array(pachSourceData)
+                    //Skip the leading CR (10)if present
+//                    if source[0] == 10 {
+//                        source = Array(source[1...])
+//                    }
                     let index = formatWidth-i-1
                     abyData[index] = source[i]
                 }
@@ -337,8 +341,10 @@ public struct DDFSubfieldDefinition {
                     let str = String(bytes: abyData, encoding: .utf8) ?? ""
                     return Int(str) ?? 0
                 } else if formatWidth == 1 {
-                    let str = String(bytes: [abyData[0]], encoding: .utf8) ?? ""
-                    return Int(str) ?? 0
+//                    let str = String(bytes: [abyData[0]], encoding: .utf8) ?? ""
+                    //let str = String(bytes: abyData, encoding: .utf8) ?? ""
+                    //return Int(str) ?? 0
+                    return Int(abyData[0])
                 } else if formatWidth == 2 {
                     let str = String(bytes: abyData, encoding: .utf8) ?? ""
                     return Int(str) ?? 0
