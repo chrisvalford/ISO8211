@@ -12,6 +12,10 @@ extension Data {
         guard let str = String(bytes: self, encoding: .ascii) else {
             throw ISO8211Error.nilString
         }
+        let trimmed = str.trimmed
+        if trimmed == "" {
+            return 0
+        }
         guard let intValue = Int(str.trimmed) else {
             throw ISO8211Error.nilInteger
         }

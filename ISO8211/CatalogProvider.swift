@@ -46,7 +46,7 @@ class CatalogProvider: ObservableObject {
             let recordSize = record.dataSize
             print("Record \(count) (\(recordSize) bytes)")
 
-            // Loop over each field in this particular record.
+            // Loop over each field in this particular record    
             for index in 0..<record.fieldCount {
                 if let field = record.getField(at: index) {
                     viewRecordField(field)

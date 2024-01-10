@@ -12,7 +12,7 @@ public struct DDFModule {
     private(set) var fileHandle: FileHandle?
     private var bReadOnly = true
     private var firstRecordOffset: UInt64 = 0
-    private var header: DDFHeader?
+    private var header: DDFHeader = DDFHeader()
 
     // One DirectoryEntry per field.
     private var fieldDefinitionCount = 0
@@ -47,10 +47,6 @@ public struct DDFModule {
 
         // Create a header from the first 24 bytes
         header = DDFHeader(data: data)
-        guard var header = header else {
-            print("Could not create header.")
-            return
-        }
 
         // Verify that this appears to be a valid DDF file.
         var isValid = header.sourceValid
@@ -131,9 +127,6 @@ public struct DDFModule {
     }
 
     public var fieldControlLength: Int {
-        guard let header = header else {
-            return 0
-        }
         return header.fieldControlLength
     }
 

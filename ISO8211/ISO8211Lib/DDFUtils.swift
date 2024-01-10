@@ -16,10 +16,9 @@ public struct DDFUtils {
     public static func fetchVariable(source: String,
                                      maxChars: Int,
                                      delimiter1: UInt8,
-                                     delimiter2: UInt8,
-                                     consumedChars: Int) -> (Int, String?) {
-        var consumed = consumedChars
-            var i = 0
+                                     delimiter2: UInt8) -> (Int, String?) {
+        var consumed = 0
+        var i = 0
         while i < maxChars - 1 && source.value(at: i) != delimiter1 && source.value(at: i) != delimiter2 {
                 i += 1
             }

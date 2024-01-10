@@ -25,7 +25,6 @@ public struct DDFFieldDefinition {
                                     fieldEntrySize: Int,
                                     data: Data) -> Bool {
         var offset = module.fieldControlLength
-        var nCharsConsumed = 0
         self.module = module
         self.tag = tag
 
@@ -86,26 +85,21 @@ public struct DDFFieldDefinition {
         var result = DDFUtils.fetchVariable(source: dataStr.substring(from: offset),
                                             maxChars: fieldEntrySize - offset,
                                             delimiter1: UInt8(DDF_UNIT_TERMINATOR),
-                                            delimiter2: UInt8(DDF_FIELD_TERMINATOR),
-                                            consumedChars: nCharsConsumed)
-        nCharsConsumed += result.0
+                                            delimiter2: UInt8(DDF_FIELD_TERMINATOR))
         offset += result.0
         _fieldName = result.1 ?? ""
 
         result = DDFUtils.fetchVariable(source: dataStr.substring(from: offset),
                                         maxChars: fieldEntrySize - offset,
                                         delimiter1: UInt8(DDF_UNIT_TERMINATOR),
-                                        delimiter2: UInt8(DDF_FIELD_TERMINATOR),
-                                        consumedChars: nCharsConsumed)
-        nCharsConsumed += result.0
+                                        delimiter2: UInt8(DDF_FIELD_TERMINATOR))
         offset += result.0
         arrayDescription = result.1 ?? ""
 
         result = DDFUtils.fetchVariable(source: dataStr.substring(from: offset),
                                         maxChars: fieldEntrySize - offset,
                                         delimiter1: UInt8(DDF_UNIT_TERMINATOR),
-                                        delimiter2: UInt8(DDF_FIELD_TERMINATOR),
-                                        consumedChars: nCharsConsumed)
+                                        delimiter2: UInt8(DDF_FIELD_TERMINATOR))
         formatControls = result.1 ?? ""
 
         // Parse the subfield info.

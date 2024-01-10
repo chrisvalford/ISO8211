@@ -28,6 +28,10 @@ struct DDFHeader {
 
     private var data: Data
 
+    init() {
+        data = Data()
+    }
+
     init(data: Data) {
         self.data = data
     }

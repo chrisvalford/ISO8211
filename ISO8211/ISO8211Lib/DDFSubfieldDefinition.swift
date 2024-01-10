@@ -85,7 +85,7 @@ public struct DDFSubfieldDefinition {
                     var charValue = formatString[1].asciiValue!
                     charValue -= "0".byte
                     binaryFormat = BinaryFormat(rawValue: Int(charValue))!
-                    let bytesStr = formatString.substring(from: 1) // was 2
+                    let bytesStr = formatString.substring(from: 2)
                     formatWidth = Int(bytesStr) ?? 0
                     if binaryFormat == .signedInteger || binaryFormat == .unsignedInteger {
                         dataType = .intType
