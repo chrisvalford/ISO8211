@@ -129,27 +129,24 @@ public struct DDFSubfieldDefinition {
      * types other than DDFString, including data past zero chars.  This is
      * the standard way of extracting DDFBinaryString subfields for instance.<p>
      *
-     * - Parameter pachSourceData The pointer to the raw data for this field.  This
+     * - Parameter data The pointer to the raw data for this field.  This
      * may have come from DDFRecord::getData(), taking into account skip factors
      * over previous subfields data.
-     * - Parameter nMaxBytes The maximum number of bytes that are accessable after
+     * - Parameter maximumBytes The maximum number of bytes that are accessable after
      * pachSourceData.
-     * - Parameter pnConsumedBytes Pointer to an integer into which the number of
+     * - Parameter bytesConsumed Pointer to an integer into which the number of
      * bytes consumed by this field should be written.  May be NULL to ignore.
      * This is used as a skip factor to increment pachSourceData to point to the
      * next subfields data.
      *
-     * - Returns A pointer to a buffer containing the data for this field.  The
-     * returned pointer is to an internal buffer which is invalidated on the
-     * next ExtractStringData() call on this DDFSubfieldDefinition().  It should not
-     * be freed by the application.
+     * - Returns A `UInt8` array of the fields data.
      */
-    mutating func extractStringData(pachSourceData: Data,
-                                    nMaxBytes: Int,
-                                    pnConsumedBytes: inout Int?) -> [UInt8] {
-        let nLength = getDataLength(pachSourceData: pachSourceData,
-                                    nMaxBytes: nMaxBytes,
-                                    pnConsumedBytes: &pnConsumedBytes)
+    mutating func extractStringData(data: Data,
+                                    maximumBytes: Int,
+                                    bytesConsumed: inout Int?) -> [UInt8] {
+        let nLength = getDataLength(data: data,
+                                    maximumBytes: maximumBytes,
+                                    bytesConsumed: &bytesConsumed)
 
         // Do we need to grow the buffer.
         if maximumBufferCharacters < nLength { // +1 {
@@ -161,7 +158,7 @@ public struct DDFSubfieldDefinition {
         // Copy the data to the buffer.  We use memcpy() so that it
         // will work for binary data.
         if nLength > 0 {
-            let bytes: [UInt8] = Array(pachSourceData)
+            let bytes: [UInt8] = Array(data)
             let subBytes = Array(bytes[...(nLength-1)]) //FIXME: one byte too long so -1
             asciiBuffer = subBytes
         }
@@ -188,22 +185,22 @@ public struct DDFSubfieldDefinition {
      *
      * - Returns The subfield's numeric value (or zero if it isn't numeric).
      */
-    mutating func extractFloatData(pachSourceData: Data,
-                                   nMaxBytes: Int,
-                                   pnConsumedBytes: inout Int?) -> Double {
+    mutating func extractFloatData(data: Data,
+                                   maximumBytes: Int,
+                                   bytesConsumed: inout Int?) -> Double {
         switch formatString[0] {
         case "A", "I", "R", "S", "C":
-            let bytes = extractStringData(pachSourceData: pachSourceData,
-                                          nMaxBytes: nMaxBytes,
-                                          pnConsumedBytes: &pnConsumedBytes)
+            let bytes = extractStringData(data: data,
+                                          maximumBytes: maximumBytes,
+                                          bytesConsumed: &bytesConsumed)
             let bytesStr = String(bytes: bytes, encoding: .utf8) ?? ""
             return Double(bytesStr) ?? 0
 
         case "B", "b":
             let abyData: [UInt8] = [0,0,0,0,0,0,0,0]
-            assert(formatWidth <= nMaxBytes)
-            if pnConsumedBytes != nil {
-                pnConsumedBytes = formatWidth
+            assert(formatWidth <= maximumBytes)
+            if bytesConsumed != nil {
+                bytesConsumed = formatWidth
             }
 
             // Byte swap the data if it isn't in machine native format.
@@ -262,38 +259,38 @@ public struct DDFSubfieldDefinition {
      * called for any type of subfield, and will return zero if the subfield is
      * not numeric.
      *
-     * - Parameter pachSourceData The pointer to the raw data for this field.  This
+     * - Parameter data The pointer to the raw data for this field.  This
      * may have come from DDFRecord::getData(), taking into account skip factors
      * over previous subfields data.
-     * - Parameter nMaxBytes The maximum number of bytes that are accessable after
+     * - Parameter maximumBytes The maximum number of bytes that are accessable after
      * pachSourceData.
-     * - Parameter pnConsumedBytes Pointer to an integer into which the number of
+     * - Parameter bytesConsumed Pointer to an integer into which the number of
      * bytes consumed by this field should be written.  May be NULL to ignore.
      * This is used as a skip factor to increment pachSourceData to point to the
      * next subfields data.
      *
      * - Returns The subfield's numeric value (or zero if it isn't numeric).
      */
-    mutating func extractIntData(pachSourceData: Data,
-                                 nMaxBytes: Int,
-                                 pnConsumedBytes: inout Int?) -> Int {
+    mutating func extractIntData(data: Data,
+                                 maximumBytes: Int,
+                                 bytesConsumed: inout Int?) -> Int {
         switch formatString[0] {
         case "A", "I", "R", "S", "C":
-            let bytes = extractStringData(pachSourceData: pachSourceData,
-                                          nMaxBytes: nMaxBytes,
-                                          pnConsumedBytes: &pnConsumedBytes)
+            let bytes = extractStringData(data: data,
+                                          maximumBytes: maximumBytes,
+                                          bytesConsumed: &bytesConsumed)
             let bytesStr = String(bytes: bytes, encoding: .utf8) ?? ""
             return Int(bytesStr) ?? 0
 
         case "B", "b":
             var abyData = [UInt8](repeating: 0, count: 80)
-            if formatWidth > nMaxBytes {
+            if formatWidth > maximumBytes {
                 print("Attempt to extract int subfield \(name) with format \(formatString)")
-                print("failed as only \(nMaxBytes) bytes available.  Using zero.")
+                print("failed as only \(maximumBytes) bytes available.  Using zero.")
                 return 0
             }
-            if pnConsumedBytes != nil {
-                pnConsumedBytes = formatWidth
+            if bytesConsumed != nil {
+                bytesConsumed = formatWidth
             }
 
             // Byte swap the data if it isn't in machine native format.
@@ -302,7 +299,7 @@ public struct DDFSubfieldDefinition {
 
             if formatString[0] == "B" || formatString[0] == "b" {
                 for i in 0..<formatWidth {
-                    let source: [UInt8] = Array(pachSourceData)
+                    let source: [UInt8] = Array(data)
                     //Skip the leading CR (10)if present
 //                    if source[0] == 10 {
 //                        source = Array(source[1...])
@@ -311,7 +308,7 @@ public struct DDFSubfieldDefinition {
                     abyData[index] = source[i]
                 }
             } else {
-                let data: [UInt8] = Array(pachSourceData)
+                let data: [UInt8] = Array(data)
                 abyData = Array(data[...formatWidth])
             }
 
@@ -395,29 +392,29 @@ public struct DDFSubfieldDefinition {
      * - Returns The number of bytes at pachSourceData which are actual data for
      * this record (not including unit, or field terminator).
      */
-    func getDataLength(pachSourceData: Data,
-                       nMaxBytes: Int,
-                       pnConsumedBytes: inout Int?) -> Int {
+    func getDataLength(data: Data,
+                       maximumBytes: Int,
+                       bytesConsumed: inout Int?) -> Int {
 
-        let bytes = Array(pachSourceData)
+        let bytes = Array(data)
 
         if !isVariable {
-            if formatWidth > nMaxBytes {
-                print("Only \(nMaxBytes) bytes available for subfield \(name) with")
+            if formatWidth > maximumBytes {
+                print("Only \(maximumBytes) bytes available for subfield \(name) with")
                 print("format string \(formatString) ... returning shortened data.")
-                if pnConsumedBytes != nil {
-                    pnConsumedBytes = nMaxBytes
+                if bytesConsumed != nil {
+                    bytesConsumed = maximumBytes
                 }
-                return nMaxBytes
+                return maximumBytes
             } else {
-                if pnConsumedBytes != nil {
-                    pnConsumedBytes = formatWidth
+                if bytesConsumed != nil {
+                    bytesConsumed = formatWidth
                 }
                 return formatWidth
             }
         } else {
-            var nLength = 0
-            var bCheckFieldTerminator = true
+            var length = 0
+            var checkFieldTerminator = true
 
             /* We only check for the field terminator because of some buggy
              * datasets with missing format terminators.  However, we have found
@@ -428,24 +425,24 @@ public struct DDFSubfieldDefinition {
              * ASCII printable range (32-127).
              */
             if bytes[0] < 32 || bytes[0] >= 127 {
-                bCheckFieldTerminator = false
+                checkFieldTerminator = false
             }
 
-            while nLength < nMaxBytes && bytes[nLength] != formatDelimeter  {
-                if bCheckFieldTerminator && bytes[nLength] == DDF_FIELD_TERMINATOR  {
+            while length < maximumBytes && bytes[length] != formatDelimeter  {
+                if checkFieldTerminator && bytes[length] == DDF_FIELD_TERMINATOR  {
                     break
                 }
-                nLength += 1
+                length += 1
             }
 
-            if pnConsumedBytes != nil {
-                if nMaxBytes == 0 {
-                    pnConsumedBytes = nLength
+            if bytesConsumed != nil {
+                if maximumBytes == 0 {
+                    bytesConsumed = length
                 } else {
-                    pnConsumedBytes = nLength+1
+                    bytesConsumed = length+1
                 }
             }
-            return nLength
+            return length
         }
     }
 }

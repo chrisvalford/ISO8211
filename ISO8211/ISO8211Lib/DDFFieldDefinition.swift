@@ -11,10 +11,10 @@ public struct DDFFieldDefinition {
     private var module: DDFModule?
     private var tag = ""
     private var _fieldName = ""
-    private var _arrayDescr = ""
-    private var _formatControls = ""
+    private var arrayDescription = ""
+    private var formatControls = ""
     private var repeatingSubfields = false
-    private var fixedWidth = 0    // zero if variable.
+    private(set) var fixedWidth = 0 // zero if variable.
     private var dataStructCode: DataStructCode = .elementary
     private var dataTypeCode: DataTypeCode = .charString
     private(set) var subfieldCount = 0
@@ -24,7 +24,7 @@ public struct DDFFieldDefinition {
                                     tag: String,
                                     fieldEntrySize: Int,
                                     data: Data) -> Bool {
-        var iFDOffset = module.fieldControlLength
+        var offset = module.fieldControlLength
         var nCharsConsumed = 0
         self.module = module
         self.tag = tag
@@ -83,30 +83,30 @@ public struct DDFFieldDefinition {
         }
 
         // Capture the field name, description (sub field names), and format statements.
-        var result = DDFUtils.fetchVariable(source: dataStr.substring(from: iFDOffset),
-                                            maxChars: fieldEntrySize - iFDOffset,
+        var result = DDFUtils.fetchVariable(source: dataStr.substring(from: offset),
+                                            maxChars: fieldEntrySize - offset,
                                             delimiter1: UInt8(DDF_UNIT_TERMINATOR),
                                             delimiter2: UInt8(DDF_FIELD_TERMINATOR),
                                             consumedChars: nCharsConsumed)
         nCharsConsumed += result.0
-        iFDOffset += result.0
+        offset += result.0
         _fieldName = result.1 ?? ""
 
-        result = DDFUtils.fetchVariable(source: dataStr.substring(from: iFDOffset),
-                                        maxChars: fieldEntrySize - iFDOffset,
+        result = DDFUtils.fetchVariable(source: dataStr.substring(from: offset),
+                                        maxChars: fieldEntrySize - offset,
                                         delimiter1: UInt8(DDF_UNIT_TERMINATOR),
                                         delimiter2: UInt8(DDF_FIELD_TERMINATOR),
                                         consumedChars: nCharsConsumed)
         nCharsConsumed += result.0
-        iFDOffset += result.0
-        _arrayDescr = result.1 ?? ""
+        offset += result.0
+        arrayDescription = result.1 ?? ""
 
-        result = DDFUtils.fetchVariable(source: dataStr.substring(from: iFDOffset),
-                                        maxChars: fieldEntrySize - iFDOffset,
+        result = DDFUtils.fetchVariable(source: dataStr.substring(from: offset),
+                                        maxChars: fieldEntrySize - offset,
                                         delimiter1: UInt8(DDF_UNIT_TERMINATOR),
                                         delimiter2: UInt8(DDF_FIELD_TERMINATOR),
                                         consumedChars: nCharsConsumed)
-        _formatControls = result.1 ?? ""
+        formatControls = result.1 ?? ""
 
         // Parse the subfield info.
         if dataStructCode != .elementary {
@@ -145,15 +145,6 @@ public struct DDFFieldDefinition {
     }
 
     /**
-     * Get the width of this field.  This function isn't normally used
-     * by applications.
-     *
-     * - Returns The width of the field in bytes, or zero if the field is not
-     * apparently of a fixed width.
-     */
-    func getFixedWidth() -> Int { return fixedWidth }
-
-    /**
      * Fetch repeating flag.
      * - Returns `true` if the field is marked as repeating.
      */
@@ -166,8 +157,8 @@ public struct DDFFieldDefinition {
      * Based on the `_arrayDescr` build a set of subfields.
      */
     private mutating func buildSubfields() -> Bool {
-        var papszSubfieldNames: [String]
-        var pszSublist = _arrayDescr
+        var subfieldNames: [String]
+        var pszSublist = arrayDescription
 
         /* -------------------------------------------------------------------- */
         /*      It is valid to define a field with _arrayDesc                   */
@@ -195,16 +186,16 @@ public struct DDFFieldDefinition {
         }
 
         // Split list of fields.
-        papszSubfieldNames = pszSublist.components(separatedBy: "!")
+        subfieldNames = pszSublist.components(separatedBy: "!")
 
         // Minimally initialize the subfields.
-        let nSFCount = papszSubfieldNames.count
+        let nSFCount = subfieldNames.count
         for iSF in 0..<nSFCount {
             var poSFDefn = DDFSubfieldDefinition()
-            poSFDefn.setName(papszSubfieldNames[iSF])
+            poSFDefn.setName(subfieldNames[iSF])
             addSubfield(poSFDefn, dontAddToFormat: true)
         }
-        papszSubfieldNames.removeAll()
+        subfieldNames.removeAll()
         return true
     }
 
@@ -215,53 +206,52 @@ public struct DDFFieldDefinition {
      */
     private mutating func applyFormats() -> Bool {
         var formatList = ""
-        var paformatItems: [String]
 
         // Verify that the format string is contained within brackets.
-        if _formatControls.count < 2
-            || !_formatControls.hasPrefix("(")
-            || !_formatControls.hasSuffix(")") {
-            print("Format controls for \(tag) field missing brackets: \(_formatControls)")
+        if formatControls.count < 2
+            || !formatControls.hasPrefix("(")
+            || !formatControls.hasSuffix(")") {
+            print("Format controls for \(tag) field missing brackets: \(formatControls)")
             return false
         }
 
         // Duplicate the string, and strip off the brackets.
-        formatList = expandFormat(source: _formatControls)
+        formatList = expandFormat(source: formatControls)
 
         // Tokenize based on commas.
-        paformatItems = formatList.components(separatedBy: ",")
+        var formatItems = formatList.components(separatedBy: ",")
         formatList.removeAll()
 
         // Apply the format items to subfields.
-        var iFormatItem = 0
-        for formatItem in paformatItems {
-            var pszPastPrefix = formatItem //paformatItems[iFormatItem]
+        var formatItemIndex = 0
+        for formatItem in formatItems {
+            var pastPrefix = formatItem //paformatItems[iFormatItem]
 
             // Skip over any leading numbers
             var n = 0
-            while pszPastPrefix[n].asciiValue! >= "0".byte && pszPastPrefix[n].asciiValue! <= "9".byte && n < pszPastPrefix.count {
+            while pastPrefix[n].asciiValue! >= "0".byte && pastPrefix[n].asciiValue! <= "9".byte && n < pastPrefix.count {
                 n += 1
             }
             if n > 0 {
-                pszPastPrefix = pszPastPrefix.substring(from: n)
+                pastPrefix = pastPrefix.substring(from: n)
             }
 
             // Did we get too many formats for the subfields created by names?
             // This may be legal by the 8211 specification, but isn't encountered
             // in any formats we care about so we just blow.
-            if iFormatItem >= subfieldCount {
+            if formatItemIndex >= subfieldCount {
                 print("Got more formats than subfields for field \(tag).")
                 break
             }
-            if !subfieldDefinitions[iFormatItem].setFormat(pszPastPrefix) {
+            if !subfieldDefinitions[formatItemIndex].setFormat(pastPrefix) {
                 return false
             }
-            iFormatItem += 1
+            formatItemIndex += 1
         }
 
         // Verify that we got enough formats, cleanup and return.
-        paformatItems.removeAll()
-        if iFormatItem < subfieldCount-1 {
+        formatItems.removeAll()
+        if formatItemIndex < subfieldCount-1 {
             print("Got less formats than subfields for field \(tag).");
             return false
         }
@@ -289,28 +279,28 @@ public struct DDFFieldDefinition {
         }
 
     // Add this format to the format list.  We don't bother aggregating formats here.
-        if _formatControls.isEmpty {
-            _formatControls = "()"
+        if formatControls.isEmpty {
+            formatControls = "()"
         }
 
-        let nOldLen = _formatControls.count
-        var pszNewFormatControls = _formatControls
+        let oldCount = formatControls.count
+        var newFormatControls = formatControls
 
-        if pszNewFormatControls[nOldLen-2] != "(" {
-            pszNewFormatControls.append(",")
+        if newFormatControls[oldCount-2] != "(" {
+            newFormatControls.append(",")
         }
 
-        pszNewFormatControls.append(contentsOf: newSubfieldDefinition.getFormat())
-        pszNewFormatControls.append(")")
-        _formatControls.removeAll()
-        _formatControls = pszNewFormatControls
+        newFormatControls.append(contentsOf: newSubfieldDefinition.getFormat())
+        newFormatControls.append(")")
+        formatControls.removeAll()
+        formatControls = newFormatControls
 
         // Add the subfield name to the list.
-        _arrayDescr.removeAll()
-        if _arrayDescr.count > 0 {
-            _arrayDescr.append("!")
+        arrayDescription.removeAll()
+        if arrayDescription.count > 0 {
+            arrayDescription.append("!")
         }
-        _arrayDescr.append(contentsOf: newSubfieldDefinition.getName())
+        arrayDescription.append(contentsOf: newSubfieldDefinition.getName())
     }
 
     let comma = ",".byte
@@ -327,31 +317,31 @@ public struct DDFFieldDefinition {
      * Give a string like "3A,2C" return "3A".
      */
     func extractSubstring(source: String) -> String {
-        let pszSrc: [UInt8] = Array(source.utf8)
-        var nBracket = 0
-        var pszReturn: [UInt8] = []
+        let sourceBytes: [UInt8] = Array(source.utf8)
+        var bracketCount = 0
+        var returnBytes: [UInt8] = []
         var i = 0
-        while (i < pszSrc.count) && (nBracket > 0 || pszSrc[i] != comma) {
-            if pszSrc[i] == openingParenthesis {
-                nBracket += 1
-            } else if pszSrc[i] == closingParenthesis {
-                nBracket -= 1
+        while (i < sourceBytes.count) && (bracketCount > 0 || sourceBytes[i] != comma) {
+            if sourceBytes[i] == openingParenthesis {
+                bracketCount += 1
+            } else if sourceBytes[i] == closingParenthesis {
+                bracketCount -= 1
             }
             i += 1
         }
-        if pszSrc[0] == openingParenthesis {
-            pszReturn = Array(pszSrc[1...(i - 2)])
+        if sourceBytes[0] == openingParenthesis {
+            returnBytes = Array(sourceBytes[1...(i - 2)])
         } else {
-            if i < pszSrc.count {
-                pszReturn = Array(pszSrc[0...i])
+            if i < sourceBytes.count {
+                returnBytes = Array(sourceBytes[0...i])
             } else {
-                pszReturn = pszSrc
+                returnBytes = sourceBytes
             }
         }
-        if pszReturn.last == comma {
-            return String(bytes: Array(pszReturn.dropLast()), encoding: .utf8) ?? ""
+        if returnBytes.last == comma {
+            return String(bytes: Array(returnBytes.dropLast()), encoding: .utf8) ?? ""
         }
-        return String(bytes: pszReturn, encoding: .utf8) ?? ""
+        return String(bytes: returnBytes, encoding: .utf8) ?? ""
     }
 
     /**
@@ -359,51 +349,54 @@ public struct DDFFieldDefinition {
      * out.
      */
     func expandFormat(source: String) -> String {
-        let pszSrc: [UInt8] = Array(source.utf8)
-        var szDest: [UInt8] = []
-        var iSrc = 0
-        var nRepeat = 0
+        let sourceBytes: [UInt8] = Array(source.utf8)
+        var destinationBytes: [UInt8] = []
+        var sourceIndex = 0
+        var repeatCount = 0
 
-        while iSrc < pszSrc.count {
+        while sourceIndex < sourceBytes.count {
             /*
              * This is presumably an extra level of brackets around
              * some binary stuff related to rescanning which we don't
              * care to do (see 6.4.3.3 of the standard. We just strip
              * off the extra layer of brackets
              */
-            if ((iSrc == 0 || pszSrc[iSrc - 1] == comma) && pszSrc[iSrc] == openingParenthesis) {
-                let pszContents = extractSubstring(source: String(bytes: Array(pszSrc[iSrc...]), encoding: .utf8) ?? "")
-                let pszExpandedContents = expandFormat(source: pszContents)
-                szDest.append(contentsOf: Array(pszExpandedContents.utf8))
-                iSrc = iSrc + pszContents.count + 2
+            if ((sourceIndex == 0 || sourceBytes[sourceIndex - 1] == comma) && sourceBytes[sourceIndex] == openingParenthesis) {
+                let pszContents = extractSubstring(source: String(bytes: Array(sourceBytes[sourceIndex...]), encoding: .utf8) ?? "")
+                let expandedContents = expandFormat(source: pszContents)
+                destinationBytes.append(contentsOf: Array(expandedContents.utf8))
+                sourceIndex = sourceIndex + pszContents.count + 2
 
-            } else if (iSrc == 0 || pszSrc[iSrc - 1] == comma) && pszSrc[iSrc].isNumber {
-                // this is a repeated subclause
-                let orig_iSrc = iSrc
-                // skip over repeat count.
-                while pszSrc[iSrc].isNumber {
-                    iSrc += 1
+            } else if (sourceIndex == 0 || sourceBytes[sourceIndex - 1] == comma) && sourceBytes[sourceIndex].isNumber {
+                // This is a repeated subclause
+
+                // Retain the origional source index
+                let index = sourceIndex
+                // Then skip over repeat count (digits)
+                while sourceBytes[sourceIndex].isNumber {
+                    sourceIndex += 1
                 }
-                let nRepeatString = Array(pszSrc[orig_iSrc..<iSrc]).string // 3A
-                nRepeat = Int(nRepeatString) ?? 0
-                let pszContents = extractSubstring(source: String(bytes: Array(pszSrc[iSrc...]), encoding: .utf8) ?? "")
-                let pszExpandedContents = Array(expandFormat(source: pszContents).utf8)
-                for i in 0..<nRepeat {
-                    szDest.append(contentsOf: pszExpandedContents)
-                    if (i < nRepeat - 1) {
-                        szDest.append(comma)
+                // Extracting the data after the digits
+                let repeatString = Array(sourceBytes[index..<sourceIndex]).string // 3A
+                repeatCount = Int(repeatString) ?? 0
+                let contents = extractSubstring(source: String(bytes: Array(sourceBytes[sourceIndex...]), encoding: .utf8) ?? "")
+                let expandedContents = Array(expandFormat(source: contents).utf8)
+                for i in 0..<repeatCount {
+                    destinationBytes.append(contentsOf: expandedContents)
+                    if (i < repeatCount - 1) {
+                        destinationBytes.append(comma)
                     }
                 }
-                if iSrc == openingParenthesis { // Open parentheis "("
-                    iSrc += pszContents.count + 2
+                if sourceIndex == openingParenthesis {
+                    sourceIndex += contents.count + 2
                 } else {
-                    iSrc += pszContents.count
+                    sourceIndex += contents.count
                 }
             } else {
-                szDest.append(pszSrc[iSrc])
-                iSrc += 1
+                destinationBytes.append(sourceBytes[sourceIndex])
+                sourceIndex += 1
             }
         }
-        return String(bytes: szDest, encoding: .utf8) ?? ""
+        return String(bytes: destinationBytes, encoding: .utf8) ?? ""
     }
 }

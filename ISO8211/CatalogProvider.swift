@@ -101,27 +101,27 @@ class CatalogProvider: ObservableObject {
         switch subfieldDefinition.dataType {
         case .intType:
             if subfieldDefinition.binaryFormat == .unsignedInteger {
-                let value = subfieldDefinition.extractIntData(pachSourceData: pachFieldData,
-                                                              nMaxBytes: bytesRemaining,
-                                                              pnConsumedBytes: &bytesConsumed)
+                let value = subfieldDefinition.extractIntData(data: pachFieldData,
+                                                              maximumBytes: bytesRemaining,
+                                                              bytesConsumed: &bytesConsumed)
                 print("(VS)        \(subfieldDefinition.getName()) = \(value)")
             } else {
-                let value = subfieldDefinition.extractIntData(pachSourceData: pachFieldData,
-                                                              nMaxBytes: bytesRemaining,
-                                                              pnConsumedBytes: &bytesConsumed)
+                let value = subfieldDefinition.extractIntData(data: pachFieldData,
+                                                              maximumBytes: bytesRemaining,
+                                                              bytesConsumed: &bytesConsumed)
                 print("(VS)        \(subfieldDefinition.getName()) = \(value)")
             }
 
         case .floatType:
-            let value = subfieldDefinition.extractFloatData(pachSourceData: pachFieldData,
-                                                            nMaxBytes: bytesRemaining,
-                                                            pnConsumedBytes: &bytesConsumed)
+            let value = subfieldDefinition.extractFloatData(data: pachFieldData,
+                                                            maximumBytes: bytesRemaining,
+                                                            bytesConsumed: &bytesConsumed)
             print("(VS)        \(subfieldDefinition.getName()) = \(value)")
 
         case .stringType:
-            let bytes = subfieldDefinition.extractStringData(pachSourceData: pachFieldData,
-                                                             nMaxBytes: bytesRemaining,
-                                                             pnConsumedBytes: &bytesConsumed)
+            let bytes = subfieldDefinition.extractStringData(data: pachFieldData,
+                                                             maximumBytes: bytesRemaining,
+                                                             bytesConsumed: &bytesConsumed)
             let string = String(bytes: bytes, encoding: .utf8) ?? ""
             print("(VS)        \(subfieldDefinition.getName()) = \(string)")
 
@@ -134,9 +134,9 @@ class CatalogProvider: ObservableObject {
             var foid_fids: Int = 0
 
             //GByte *pabyBString = (GByte *)
-            let pabyBString = subfieldDefinition.extractStringData(pachSourceData: pachFieldData,
-                                                                   nMaxBytes: bytesRemaining,
-                                                                   pnConsumedBytes: &bytesConsumed)
+            let pabyBString = subfieldDefinition.extractStringData(data: pachFieldData,
+                                                                   maximumBytes: bytesRemaining,
+                                                                   bytesConsumed: &bytesConsumed)
 
             print("(VS)        \(subfieldDefinition.getName()) = 0x")
             for i in 0..<min(bytesConsumed!, 24) {

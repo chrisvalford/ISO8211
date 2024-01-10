@@ -14,16 +14,16 @@ public struct DDFField {
     private(set) var data: Data
 
     public mutating func initialize(fieldDefinition: DDFFieldDefinition,
-                           asciiDataIn: Data,
-                        dataSize: Int) {
+                                    asciiDataIn: Data,
+                                    dataSize: Int) {
         data = asciiDataIn
         self.dataSize = dataSize
         self.fieldDefinition = fieldDefinition
     }
 
     public init(poDefnIn: DDFFieldDefinition,
-                           asciiDataIn: Data,
-                        dataSize: Int) {
+                asciiDataIn: Data,
+                dataSize: Int) {
         data = asciiDataIn
         self.dataSize = dataSize
         fieldDefinition = poDefnIn
@@ -34,44 +34,44 @@ public struct DDFField {
      * in this record.  This will be one for non-repeating fields.
      */
     public var repeatCount: Int {
-        guard let poDefn = fieldDefinition else {
+        guard let fieldDefinition = fieldDefinition else {
             return 0
         }
 
-        if poDefn.isRepeating() == false {
+        if fieldDefinition.isRepeating() == false {
             return 1
         }
 
-    // The occurance count depends on how many copies of this
-    // field's list of subfields can fit into the data space.
-        if poDefn.getFixedWidth() != 0 {
-            return dataSize / poDefn.getFixedWidth()
+        // The occurance count depends on how many copies of this
+        // field's list of subfields can fit into the data space.
+        if fieldDefinition.fixedWidth != 0 {
+            return dataSize / fieldDefinition.fixedWidth
         }
 
-    // Note that it may be legal to have repeating variable width
-    // subfields, but I don't have any samples, so I ignore it for
-    // now.
+        // Note that it may be legal to have repeating variable width
+        // subfields, but I don't have any samples, so I ignore it for
+        // now.
         var offset = 0
         var repeatCount = 1
 
         while(true) {
-            for iSF in 0..<poDefn.subfieldCount {
-                var nBytesConsumed: Int? = 0
-                guard let poThisSFDefn: DDFSubfieldDefinition = poDefn.getSubfield(at: iSF) else {
+            for index in 0..<fieldDefinition.subfieldCount {
+                var consumed: Int? = 0
+                guard let subfieldDefinition = fieldDefinition.getSubfield(at: index) else {
                     print("Didn't find dubfield definition, looping")
                     continue
                 }
 
-                if poThisSFDefn.formatWidth > dataSize - offset {
-                    nBytesConsumed = poThisSFDefn.formatWidth
+                if subfieldDefinition.formatWidth > dataSize - offset {
+                    consumed = subfieldDefinition.formatWidth
                 } else {
                     let bytes: [UInt8] = Array(data)
                     let subBytes = bytes[offset...]
-                    _ = poThisSFDefn.getDataLength(pachSourceData: Data(subBytes),
-                                               nMaxBytes: dataSize - offset,
-                                               pnConsumedBytes: &nBytesConsumed)
+                    _ = subfieldDefinition.getDataLength(data: Data(subBytes),
+                                                         maximumBytes: dataSize - offset,
+                                                         bytesConsumed: &consumed)
                 }
-                offset += nBytesConsumed!
+                offset += consumed!
                 if offset > dataSize {
                     return repeatCount - 1
                 }
