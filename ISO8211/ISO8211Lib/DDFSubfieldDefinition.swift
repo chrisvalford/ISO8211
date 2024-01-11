@@ -297,20 +297,38 @@ public struct DDFSubfieldDefinition {
             // In any event we copy it into our buffer to ensure it is
             // word aligned.
 
-            if formatString[0] == "B" || formatString[0] == "b" {
-                for i in 0..<formatWidth {
-                    let source: [UInt8] = Array(data)
-                    //Skip the leading CR (10)if present
-//                    if source[0] == 10 {
-//                        source = Array(source[1...])
-//                    }
-                    let index = formatWidth-i-1
-                    abyData[index] = source[i]
+//            if formatString[0] == "B" || formatString[0] == "b" {
+                // Reverse the bytes
+//                for i in 0..<formatWidth {
+//                    let source: [UInt8] = Array(data)
+//                    //Skip the leading CR (10)if present
+////                    if source[0] == 10 {
+////                        source = Array(source[1...])
+////                    }
+//                    let index = formatWidth-i-1
+//                    abyData[index] = source[i]
+//                }
+//            } else {
+
+            if formatWidth == 0 {
+                print("Zero length format width.")
+                print("Possible Field name: VRPT: description: Vector record pointer field (VS)        NAME = 0x(VS) 78(VS) 72(VS) 02(VS) 00(VS) 00(VS)    VRID RCNM = 120,RCID = 626(VS)        ORNT = 255")
+                abyData = Array(data)
+            }
+
+            else if formatWidth == 1 {
+                if let byte = data.first {
+                    abyData = [byte]
                 }
             } else {
-                let data: [UInt8] = Array(data)
-                abyData = Array(data[...formatWidth])
+                let byteArray = Array(data)
+                let subBytes = byteArray[0...formatWidth-1]
+                //let subBytes = data.prefix(upTo: formatWidth)
+                abyData = Array(subBytes)
             }
+//                let data: [UInt8] = Array(data)
+//                abyData = Array(data[...formatWidth])
+//            }
 
             // Interpret the bytes of data.
             switch binaryFormat {
@@ -320,24 +338,45 @@ public struct DDFSubfieldDefinition {
 
             case .unsignedInteger:
                 if formatWidth == 4 {
-                    let str = String(bytes: abyData, encoding: .utf8) ?? ""
-                    return Int(str) ?? 0
+                    let subData = abyData.prefix(upTo: formatWidth)
+                    let x = subData.withUnsafeBytes({
+                        (rawPtr: UnsafeRawBufferPointer) in
+                        return rawPtr.load(as: Int32.self)
+                    })
+                    return Int(x)
+
+//                    var str = String(bytes: subData, encoding: .ascii) ?? ""
+//                    if str.last != "\0" {
+//                        str.append("\0")
+//                    }
+//                    return Int(str) ?? 0
                 } else if formatWidth == 1 {
-//                    let str = String(bytes: [abyData[0]], encoding: .utf8) ?? ""
-                    //let str = String(bytes: abyData, encoding: .utf8) ?? ""
-                    //return Int(str) ?? 0
                     return Int(abyData[0])
                 } else if formatWidth == 2 {
-                    let str = String(bytes: abyData, encoding: .utf8) ?? ""
-                    return Int(str) ?? 0
+                    let subData = abyData.prefix(upTo: formatWidth)
+                    let x = subData.withUnsafeBytes({
+                        (rawPtr: UnsafeRawBufferPointer) in
+                        return rawPtr.load(as: Int16.self)
+                    })
+                    return Int(x)
+//                    let first = abyData[0] * 2
+//                    let second = abyData[1] * 4
+//                    let sum = first + second
+//                    let str = String(bytes: abyData, encoding: .ascii) ?? ""
+//                    return Int(sum)
                 } else {
                     return 0
                 }
 
             case .signedInteger:
-                if (formatWidth == 4 ) {
-                    let str = String(bytes: abyData, encoding: .utf8) ?? ""
-                    return Int(str) ?? 0
+                if formatWidth == 4 {
+                    let x = abyData.withUnsafeBytes({
+                        (rawPtr: UnsafeRawBufferPointer) in
+                        return rawPtr.load(as: Int32.self)
+                    })
+                    return Int(x)
+//                    let str = String(bytes: abyData, encoding: .utf8) ?? ""
+//                    return Int(str) ?? 0
                 } else if (formatWidth == 1 ) {
                     let str = String(bytes: abyData, encoding: .utf8) ?? ""
                     return Int(str) ?? 0
@@ -350,8 +389,13 @@ public struct DDFSubfieldDefinition {
 
             case .floatReal:
                 if formatWidth == 4 {
-                    let str = String(bytes: abyData, encoding: .utf8) ?? ""
-                    return Int(str) ?? 0
+                    let x = abyData.withUnsafeBytes({
+                        (rawPtr: UnsafeRawBufferPointer) in
+                        return rawPtr.load(as: Int32.self)
+                    })
+                    return Int(x)
+//                    let str = String(bytes: abyData, encoding: .utf8) ?? ""
+//                    return Int(str) ?? 0
                 } else if (formatWidth == 8 ) {
                     let str = String(bytes: abyData, encoding: .utf8) ?? ""
                     return Int(str) ?? 0
