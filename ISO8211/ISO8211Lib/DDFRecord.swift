@@ -8,41 +8,29 @@
 import Foundation
 
 public class DDFRecord {
-    //TODO: Look at where poModule is used, possibly change this to a struct
-    private var poModule: DDFModule
-    private var nReuseHeader: Bool
-    private var nFieldOffset: Int   // field data area, not dir entries.
-    private var _sizeFieldTag: Int
-    private var _sizeFieldPos: Int
-    private var _sizeFieldLength: Int
-    private var nDataSize: Int     // Whole record except leader with header
+    //TODO: Look at where module is used, possibly change this to a struct
+    private var module: DDFModule
+    private var reuseHeader: Bool
+    private var fieldDataOffset: Int   // field data area, not dir entries.
+    private var sizeofFieldTag: Int
+    private var sizeofFieldPos: Int
+    private var sizeofFieldLength: Int
+    private(set) var dataSize: Int     // Whole record except leader with header
     private var asciiData: Data = Data()
-    private var nFieldCount: Int
-    private var paoFields: [DDFField] = []
+    private(set) var fieldCount: Int
+    private(set) var fields: [DDFField] = []
     private var bIsClone: Bool
 
-    private let nLeaderSize = 24
-
-    public init(_ poModuleIn: DDFModule) {
-        poModule = poModuleIn
-        nReuseHeader = false
-        nFieldOffset = 0
-        nDataSize = 0
-        nFieldCount = 0
+    public init(_ module: DDFModule) {
+        self.module = module
+        reuseHeader = false
+        fieldDataOffset = 0
+        dataSize = 0
+        fieldCount = 0
         bIsClone = false
-        _sizeFieldTag = 4
-        _sizeFieldPos = 0
-        _sizeFieldLength = 0
-    }
-
-    /** Fetch size of records raw data (getData()) in bytes. */
-    public func getDataSize() -> Int {
-        return nDataSize
-    }
-
-    /** Get the number of DDFFields on this record. */
-    public func getFieldCount() -> Int {
-        return nFieldCount
+        sizeofFieldTag = 4
+        sizeofFieldPos = 0
+        sizeofFieldLength = 0
     }
 
     /**
@@ -53,10 +41,10 @@ public class DDFRecord {
      * - Returns A DDFField, or nil if the index is out of range.
      */
     public func getField(at i: Int) -> DDFField? {
-        if i < 0 || i >= nFieldCount {
+        if i < 0 || i >= fieldCount {
             return nil
         } else {
-            return paoFields[i]
+            return fields[i]
         }
     }
 
@@ -72,7 +60,7 @@ public class DDFRecord {
     func read() -> Bool {
         // Redefine the record on the basis of the header if needed.
         // As a side effect this will read the data for the record as well.
-        if nReuseHeader == false {
+        if reuseHeader == false {
             return readHeader()
         }
 
@@ -80,19 +68,22 @@ public class DDFRecord {
         // the previous records data without disturbing the rest of the
         // record.
         var data: Data?
+        guard let fp = module.fileHandle else {
+            return false
+        }
         do {
-            data = try poModule.getFP().read(upToCount: nDataSize - nFieldOffset)
+            data = try fp.read(upToCount: dataSize - fieldDataOffset)
         } catch {
             print(error.localizedDescription)
             return false
         }
         guard let data = data else { return false }
-        asciiData.insert(contentsOf: data, at: nFieldOffset)
-        if data.count != (nDataSize - nFieldOffset)
+        asciiData.insert(contentsOf: data, at: fieldDataOffset)
+        if data.count != (dataSize - fieldDataOffset)
             && data.count == 0
-            && (try? poModule.getFP().availableData) == nil {
+            && fp.availableData.count == 0 {
             return false
-        } else if data.count != (nDataSize - nFieldOffset) {
+        } else if data.count != (dataSize - fieldDataOffset) {
             print("Data record is short on DDF file.")
             return false
         }
@@ -108,250 +99,255 @@ public class DDFRecord {
      */
     private func readHeader() -> Bool {
         //TODO: How is this different than the other header reading code?
-        
+
         // clear any existing information.
-        paoFields.removeAll()
-        nFieldCount = 0
+        fields.removeAll()
+        fieldCount = 0
         asciiData.removeAll()
-        nDataSize = 0
-        nReuseHeader = false
-        
+        dataSize = 0
+        reuseHeader = false
+
         // read the 24 byte leader.
         var achLeader: Data
         var data: Data?
+        guard let fileHandle = module.fileHandle else {
+            return false
+        }
         do {
-            data = try poModule.getFP().read(upToCount: nLeaderSize)
+            data = try fileHandle.read(upToCount: LEADER_SIZE)
         } catch {
             print(error.localizedDescription)
             return false
         }
-        
-        if data?.count == 0 && (try? poModule.getFP().availableData) == nil {
+
+        if data?.count == 0 && fileHandle.availableData.count == 0 {
             return false
-        } else if data?.count != nLeaderSize {
+        } else if data?.count != LEADER_SIZE {
             print("Leader is short on DDF file.")
             return false
         }
         achLeader = data!
-        
+
         // Extract information from leader.
-        var _recLength: Int
-        var _fieldAreaStart: Int
-        var _leaderIden: UInt8
-        _recLength = DDFUtils.DDFScanInt(source: achLeader, fromIndex: 0, maxChars: 5) ?? 0
-        _leaderIden = achLeader[6]
-        _fieldAreaStart = DDFUtils.DDFScanInt(source: achLeader, fromIndex: 12, maxChars: 5) ?? 0
-        _sizeFieldLength = Int(achLeader[20] - "0".byte)
-        _sizeFieldPos = Int(achLeader[21] - "0".byte)
-        _sizeFieldTag = Int(achLeader[23] - "0".byte)
-        
-        if _sizeFieldLength < 0 || _sizeFieldLength > 9
-            || _sizeFieldPos < 0 || _sizeFieldPos > 9
-            || _sizeFieldTag < 0 || _sizeFieldTag > 9 {
+        var recordLength: Int
+        var fieldAreaStart: Int
+        var leaderIdentifier: UInt8
+        recordLength = DDFUtils.DDFScanInt(source: achLeader, fromIndex: 0, maxChars: 5) ?? 0
+        leaderIdentifier = achLeader[6]
+        fieldAreaStart = DDFUtils.DDFScanInt(source: achLeader, fromIndex: 12, maxChars: 5) ?? 0
+        sizeofFieldLength = Int(achLeader[20] - "0".byte)
+        sizeofFieldPos = Int(achLeader[21] - "0".byte)
+        sizeofFieldTag = Int(achLeader[23] - "0".byte)
+
+        if sizeofFieldLength < 0 || sizeofFieldLength > 9
+            || sizeofFieldPos < 0 || sizeofFieldPos > 9
+            || sizeofFieldTag < 0 || sizeofFieldTag > 9 {
             print("ISO8211 record leader appears to be corrupt.")
             return false
         }
-        
-        if _leaderIden == "R".byte {
-            nReuseHeader = true
+
+        if leaderIdentifier == "R".byte {
+            reuseHeader = true
         }
-        nFieldOffset = _fieldAreaStart - nLeaderSize;
-        
+        fieldDataOffset = fieldAreaStart - LEADER_SIZE;
+
         // Simple checks
-        if (_recLength < 24 || _recLength > 100000000 || _fieldAreaStart < 24 || _fieldAreaStart > 100000)
-            && (_recLength != 0) {
+        if (recordLength < 24 || recordLength > 100000000 || fieldAreaStart < 24 || fieldAreaStart > 100000)
+            && (recordLength != 0) {
             print("Data record appears to be corrupt on DDF file.")
             return false
         }
-        
+
         // Handle the normal case with the record length available.
-        if _recLength != 0 {
+        if recordLength != 0 {
             // read the remainder of the record.
-            nDataSize = _recLength - nLeaderSize
+            dataSize = recordLength - LEADER_SIZE
             do {
-                data = try poModule.getFP().read(upToCount: nDataSize)
+                data = try fileHandle.read(upToCount: dataSize)
             } catch {
                 print(error.localizedDescription)
                 return false
             }
             guard let data = data else { return false }
-            if data.count != nDataSize {
+            if data.count != dataSize {
                 print("Data record is short on DDF file.")
                 return false
             }
             asciiData = data
-            
+
             // If there is no field terminator at the end of the record
             // read additional bytes till one is found.
-            while(asciiData[nDataSize-1] != DDF_FIELD_TERMINATOR) {
-                nDataSize += 1
+            while(asciiData[dataSize-1] != DDF_FIELD_TERMINATOR) {
+                dataSize += 1
                 do {
-                    let newData = try poModule.getFP().read(upToCount: 1)
+                    let newData = try fileHandle.read(upToCount: 1)
                     asciiData += newData!
                 } catch {
                     print(error.localizedDescription)
                     return false
                 }
             }
-            
+
             // Count the directory entries.
-            let nFieldEntryWidth = _sizeFieldLength + _sizeFieldPos + _sizeFieldTag;
-            nFieldCount = 0
-            for i in stride(from: 0, to: nDataSize, by: nFieldEntryWidth) {
+            let fieldEntryWidth = sizeofFieldLength + sizeofFieldPos + sizeofFieldTag
+            fieldCount = 0
+            for i in stride(from: 0, to: dataSize, by: fieldEntryWidth) {
                 if asciiData[i] == DDF_FIELD_TERMINATOR {
                     break
                 }
-                nFieldCount += 1
+                fieldCount += 1
             }
-            
+
             // Allocate, and read field definitions.
-            for i in 0..<nFieldCount {
-                var szTag: String
-                var nEntryOffset = i*nFieldEntryWidth
-                var nFieldLength: Int
-                var nFieldPos: Int
-                
+            for i in 0..<fieldCount {
+                var tag: String
+                var entryOffset = i*fieldEntryWidth
+                var fieldLength: Int
+                var fieldPosition: Int
+
                 // read the position information and tag.
-                szTag = String(bytes: Array(asciiData[nEntryOffset...(nEntryOffset+_sizeFieldTag-1)]), encoding: .utf8) ?? ""
-                nEntryOffset += _sizeFieldTag
-                nFieldLength = DDFUtils.DDFScanInt(source: asciiData, fromIndex: nEntryOffset, maxChars: _sizeFieldLength) ?? 0
-                nEntryOffset += _sizeFieldLength;
-                nFieldPos = DDFUtils.DDFScanInt(source: asciiData, fromIndex: nEntryOffset, maxChars: _sizeFieldPos) ?? 0
-                
+                tag = String(bytes: Array(asciiData[entryOffset...(entryOffset+sizeofFieldTag-1)]), encoding: .utf8) ?? ""
+                entryOffset += sizeofFieldTag
+                fieldLength = DDFUtils.DDFScanInt(source: asciiData, fromIndex: entryOffset, maxChars: sizeofFieldLength) ?? 0
+                entryOffset += sizeofFieldLength;
+                fieldPosition = DDFUtils.DDFScanInt(source: asciiData, fromIndex: entryOffset, maxChars: sizeofFieldPos) ?? 0
+
                 // Find the corresponding field in the module directory.
-                guard let poFieldDefn: DDFFieldDefinition = poModule.findFieldDefn(fieldName: szTag) else {
-                    print("(1) Undefined field named: \(szTag) encountered in data record.")
+                guard let fieldDefinition = module.findFieldDefinition(tag: tag) else {
+                    print("(1) Undefined field named: \(tag) encountered in data record.")
                     return false
                 }
-                
+
                 // Create the DDFField
-                let startIndex = _fieldAreaStart + nFieldPos - nLeaderSize
+                let startIndex = fieldAreaStart + fieldPosition - LEADER_SIZE
                 let endIndex = asciiData.count-1
                 let bytes = data[startIndex...endIndex]
-                paoFields.append(DDFField(poDefnIn: poFieldDefn,
-                                             asciiDataIn: bytes,
-                                             nDataSizeIn: nFieldLength))
+                fields.append(DDFField(poDefnIn: fieldDefinition,
+                                       asciiDataIn: bytes,
+                                       dataSize: fieldLength))
             }
             return true
         }
-        
+
         // Handle the exceptional case where the record length is
-        // zero.  In this case we have to read all the data based on
+        // zero. In this case we have to read all the data based on
         // the size of data items as per ISO8211 spec Annex C, 1.5.1.
         else {
             print("Record with zero length, use variant (C.1.5.1) logic.")
-            
+
             //   _recLength == 0, handle the large record.
             //   read the remainder of the record.
-            
-            nDataSize = 0
+
+            dataSize = 0
             asciiData.removeAll()
-            
+
             //   Loop over the directory entries, making a pass counting them.
-            let nFieldEntryWidth = _sizeFieldLength + _sizeFieldPos + _sizeFieldTag
-            nFieldCount = 0
+            let nFieldEntryWidth = sizeofFieldLength + sizeofFieldPos + sizeofFieldTag
+            fieldCount = 0
             var tmpBuf: Data
 
-            // while we're not at the end, store this entry,
-            // and keep on reading...
+            // while we're not at the end, store this entry, and keep on reading...
             repeat {
                 do {
-                    data = try poModule.getFP().read(upToCount: nFieldEntryWidth)
+                    data = try fileHandle.read(upToCount: nFieldEntryWidth)
                     tmpBuf = data!
                 } catch {
                     print(error.localizedDescription)
                     return false
                 }
-                
+
                 if tmpBuf.count != nFieldEntryWidth {
                     print("Data record is short on DDF file.")
                     return false
                 }
-                
+
                 // move this temp buffer into more permanent storage:
-                var newBuf = asciiData[...nDataSize]
+                var newBuf = asciiData[...dataSize]
                 asciiData.removeAll()
                 newBuf.append(contentsOf: tmpBuf[...nFieldEntryWidth])
                 asciiData = newBuf
-                nDataSize += nFieldEntryWidth
-                
+                dataSize += nFieldEntryWidth
+
                 if DDF_FIELD_TERMINATOR != tmpBuf[0] {
-                    nFieldCount += 1
+                    fieldCount += 1
                 }
             } while DDF_FIELD_TERMINATOR != tmpBuf[0]
-            
-            // Now, rewind a little.  Only the TERMINATOR should have been read:
+
+            // Now, rewind a little. Only the TERMINATOR should have been read:
             let rewindSize = nFieldEntryWidth - 1
-            var fp: FileHandle
+            guard let fp = module.fileHandle else {
+                return false
+            }
             do {
-                fp = try poModule.getFP()
                 let pos = try fp.offset() - UInt64(rewindSize)
                 try fp.seek(toOffset: pos)
             } catch {
                 print(error.localizedDescription)
                 return false
             }
-            nDataSize -= rewindSize;
-            
+            dataSize -= rewindSize
+
             // Okay, now populate from asciiData...
-            for i in 0..<nFieldCount {
-                let nEntryOffset = (i*nFieldEntryWidth) + _sizeFieldTag
+            for i in 0..<fieldCount {
+                let nEntryOffset = (i*nFieldEntryWidth) + sizeofFieldTag
                 let nFieldLength = DDFUtils.DDFScanInt(source: asciiData,
                                                        fromIndex: nEntryOffset,
-                                                       maxChars: _sizeFieldLength) ?? 0
+                                                       maxChars: sizeofFieldLength) ?? 0
                 var tmpBuf: Data
 
                 // read an Entry:
                 do {
-                    data = try poModule.getFP().read(upToCount: nFieldLength)
+                    data = try fp.read(upToCount: nFieldLength)
                 } catch {
                     print(error.localizedDescription)
                     return false
                 }
-                
+
                 tmpBuf = data!
-                
+
                 if tmpBuf.count != nFieldLength {
                     print("Data record is short on DDF file.")
                     return false
                 }
-                
+
                 // Move this temp buffer into more permanent storage:
-                var newBuf = asciiData[...nDataSize]
+                //var newBuf = asciiData[...dataSize]
+                var newBuf = asciiData.subdata(in: Range(0...dataSize))
                 asciiData.removeAll()
-                newBuf += tmpBuf[...nFieldLength]
+                //newBuf += tmpBuf[...nFieldLength]
+                newBuf.append(tmpBuf.subdata(in: Range(0...nFieldLength)))
                 tmpBuf.removeAll()
                 asciiData = newBuf
-                nDataSize += nFieldLength
+                dataSize += nFieldLength
             }
-            
-            // Allocate, and read field definitions.
-            //paoFields = new DDFField[nFieldCount];
-            for i in 0..<nFieldCount {
-                var szTag = ""
-                var nEntryOffset = i*nFieldEntryWidth
-                var nFieldLength: Int
-                var nFieldPos: Int
-                
-                // read the position information and tag.
-                szTag = String(data: asciiData[nEntryOffset...(nEntryOffset+_sizeFieldTag-1)], encoding: .utf8) ?? ""
 
-                nEntryOffset += _sizeFieldTag
-                nFieldLength = DDFUtils.DDFScanInt(source: asciiData, fromIndex: nEntryOffset, maxChars: _sizeFieldLength) ?? 0
-                
-                nEntryOffset += _sizeFieldLength
-                nFieldPos = DDFUtils.DDFScanInt(source: asciiData, fromIndex: nEntryOffset, maxChars: _sizeFieldPos) ?? 0
-                
+            // Allocate, and read field definitions.
+            //fields = new DDFField[nFieldCount];
+            for i in 0..<fieldCount {
+                var tag = ""
+                var entryOffset = i*nFieldEntryWidth
+                var fieldLength: Int
+                var fieldPosition: Int
+
+                // read the position information and tag.
+                tag = String(data: asciiData[entryOffset...(entryOffset+sizeofFieldTag-1)], encoding: .utf8) ?? ""
+
+                entryOffset += sizeofFieldTag
+                fieldLength = DDFUtils.DDFScanInt(source: asciiData, fromIndex: entryOffset, maxChars: sizeofFieldLength) ?? 0
+
+                entryOffset += sizeofFieldLength
+                fieldPosition = DDFUtils.DDFScanInt(source: asciiData, fromIndex: entryOffset, maxChars: sizeofFieldPos) ?? 0
+
                 // Find the corresponding field in the module directory.
-                guard let poFieldDefn: DDFFieldDefinition = poModule.findFieldDefn(fieldName: szTag) else {
-                    print("(2) Undefined field named: \(szTag) encountered in data record.")
+                guard let fieldDefinition = module.findFieldDefinition(tag: tag) else {
+                    print("(2) Undefined field named: \(tag) encountered in data record.")
                     return false
                 }
-                
+
                 // Assign info the DDFField.
-                paoFields[i].initialize(poDefnIn: poFieldDefn,
-                                        asciiDataIn: asciiData[(_fieldAreaStart + nFieldPos - nLeaderSize)...],
-                                        nDataSizeIn: nFieldLength)
+                fields[i].initialize(fieldDefinition: fieldDefinition,
+                                     asciiDataIn: asciiData[(fieldAreaStart + fieldPosition - LEADER_SIZE)...],
+                                     dataSize: fieldLength)
             }
             return true
         }

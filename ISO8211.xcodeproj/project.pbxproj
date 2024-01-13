@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		2F6A9BC02B3ADD030079E931 /* ISO8211App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BBF2B3ADD030079E931 /* ISO8211App.swift */; };
-		2F6A9BC22B3ADD030079E931 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BC12B3ADD030079E931 /* ContentView.swift */; };
 		2F6A9BC42B3ADD050079E931 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2F6A9BC32B3ADD050079E931 /* Assets.xcassets */; };
 		2F6A9BC72B3ADD050079E931 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2F6A9BC62B3ADD050079E931 /* Preview Assets.xcassets */; };
 		2F6A9BC92B3ADD050079E931 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BC82B3ADD050079E931 /* Persistence.swift */; };
@@ -44,10 +43,14 @@
 		2FB770192B404A28005B37E4 /* DDFModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF22B3ADDB30079E931 /* DDFModule.swift */; };
 		2FB7701A2B404A31005B37E4 /* DDFRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF42B3ADF9D0079E931 /* DDFRecord.swift */; };
 		2FB7701B2B404A39005B37E4 /* DDFFieldDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A9BF62B3ADFB20079E931 /* DDFFieldDefinition.swift */; };
-		2FB770672B409F38005B37E4 /* DDFSubfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770662B409F38005B37E4 /* DDFSubfield.swift */; };
-		2FB770682B409F38005B37E4 /* DDFSubfield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770662B409F38005B37E4 /* DDFSubfield.swift */; };
 		2FB7706A2B417D24005B37E4 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770692B417D24005B37E4 /* Enums.swift */; };
 		2FB7706B2B417D24005B37E4 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB770692B417D24005B37E4 /* Enums.swift */; };
+		2FD2C9762B4C673A00F20F8B /* DDFHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C9752B4C673A00F20F8B /* DDFHeader.swift */; };
+		2FD2C9772B4C673A00F20F8B /* DDFHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C9752B4C673A00F20F8B /* DDFHeader.swift */; };
+		2FD2C9792B4C677400F20F8B /* Data+Values.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C9782B4C677400F20F8B /* Data+Values.swift */; };
+		2FD2C97A2B4C677400F20F8B /* Data+Values.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C9782B4C677400F20F8B /* Data+Values.swift */; };
+		2FD2C97D2B4D6AD900F20F8B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C97C2B4D6AD900F20F8B /* Constants.swift */; };
+		2FD2C97E2B4D6AD900F20F8B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD2C97C2B4D6AD900F20F8B /* Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,7 +73,6 @@
 /* Begin PBXFileReference section */
 		2F6A9BBC2B3ADD030079E931 /* ISO8211.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ISO8211.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F6A9BBF2B3ADD030079E931 /* ISO8211App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISO8211App.swift; sourceTree = "<group>"; };
-		2F6A9BC12B3ADD030079E931 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2F6A9BC32B3ADD050079E931 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2F6A9BC62B3ADD050079E931 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2F6A9BC82B3ADD050079E931 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
@@ -96,8 +98,10 @@
 		2F6A9C142B3C30F90079E931 /* DDFField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDFField.swift; sourceTree = "<group>"; };
 		2F6A9C1A2B3C98970079E931 /* MoreMath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoreMath.swift; sourceTree = "<group>"; };
 		2FA092152B42CDB600E57D81 /* URL+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+.swift"; sourceTree = "<group>"; };
-		2FB770662B409F38005B37E4 /* DDFSubfield.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DDFSubfield.swift; sourceTree = "<group>"; };
 		2FB770692B417D24005B37E4 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
+		2FD2C9752B4C673A00F20F8B /* DDFHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DDFHeader.swift; sourceTree = "<group>"; };
+		2FD2C9782B4C677400F20F8B /* Data+Values.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Values.swift"; sourceTree = "<group>"; };
+		2FD2C97C2B4D6AD900F20F8B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,8 +155,7 @@
 				2F6A9BFA2B3AE1BA0079E931 /* Extensions */,
 				2F6A9BEF2B3ADD190079E931 /* ISO8211Lib */,
 				2F6A9BBF2B3ADD030079E931 /* ISO8211App.swift */,
-				2F6A9BC12B3ADD030079E931 /* ContentView.swift */,
-				2F6A9BF02B3ADD740079E931 /* CatalogView.swift */,
+				2FD2C97B2B4CA8E500F20F8B /* Views */,
 				2F6A9C112B3C2D720079E931 /* CatalogProvider.swift */,
 				2F6A9BC32B3ADD050079E931 /* Assets.xcassets */,
 				2F6A9BC82B3ADD050079E931 /* Persistence.swift */,
@@ -191,16 +194,17 @@
 		2F6A9BEF2B3ADD190079E931 /* ISO8211Lib */ = {
 			isa = PBXGroup;
 			children = (
+				2FD2C9752B4C673A00F20F8B /* DDFHeader.swift */,
 				2F6A9BF22B3ADDB30079E931 /* DDFModule.swift */,
 				2F6A9C142B3C30F90079E931 /* DDFField.swift */,
 				2F6A9BF42B3ADF9D0079E931 /* DDFRecord.swift */,
 				2F6A9BF62B3ADFB20079E931 /* DDFFieldDefinition.swift */,
-				2FB770662B409F38005B37E4 /* DDFSubfield.swift */,
 				2F6A9C0A2B3B6B170079E931 /* DDFSubfieldDefinition.swift */,
 				2F6A9C072B3AEC010079E931 /* DDFUtils.swift */,
 				2F6A9C1A2B3C98970079E931 /* MoreMath.swift */,
 				2F6A9BF82B3AE0B60079E931 /* ISO8211Error.swift */,
 				2FB770692B417D24005B37E4 /* Enums.swift */,
+				2FD2C97C2B4D6AD900F20F8B /* Constants.swift */,
 			);
 			path = ISO8211Lib;
 			sourceTree = "<group>";
@@ -213,8 +217,17 @@
 				2F6A9BFB2B3AE1CA0079E931 /* UInt8+.swift */,
 				2F6A9C042B3AE2C30079E931 /* String+.swift */,
 				2FA092152B42CDB600E57D81 /* URL+.swift */,
+				2FD2C9782B4C677400F20F8B /* Data+Values.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		2FD2C97B2B4CA8E500F20F8B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2F6A9BF02B3ADD740079E931 /* CatalogView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -352,15 +365,15 @@
 				2FB7706A2B417D24005B37E4 /* Enums.swift in Sources */,
 				2F6A9BF32B3ADDB30079E931 /* DDFModule.swift in Sources */,
 				2F6A9C022B3AE24D0079E931 /* Array+.swift in Sources */,
-				2FB770672B409F38005B37E4 /* DDFSubfield.swift in Sources */,
+				2FD2C97D2B4D6AD900F20F8B /* Constants.swift in Sources */,
 				2F6A9BC92B3ADD050079E931 /* Persistence.swift in Sources */,
 				2F6A9C1B2B3C98970079E931 /* MoreMath.swift in Sources */,
 				2F6A9BFF2B3AE1E30079E931 /* Sequence+.swift in Sources */,
 				2F6A9BF52B3ADF9D0079E931 /* DDFRecord.swift in Sources */,
-				2F6A9BC22B3ADD030079E931 /* ContentView.swift in Sources */,
 				2F6A9BC02B3ADD030079E931 /* ISO8211App.swift in Sources */,
 				2F6A9BF92B3AE0B60079E931 /* ISO8211Error.swift in Sources */,
 				2F6A9BCC2B3ADD050079E931 /* ISO8211.xcdatamodeld in Sources */,
+				2FD2C9792B4C677400F20F8B /* Data+Values.swift in Sources */,
 				2F6A9BF72B3ADFB20079E931 /* DDFFieldDefinition.swift in Sources */,
 				2F6A9C052B3AE2C30079E931 /* String+.swift in Sources */,
 				2FA092162B42CDB600E57D81 /* URL+.swift in Sources */,
@@ -368,6 +381,7 @@
 				2F6A9C122B3C2D720079E931 /* CatalogProvider.swift in Sources */,
 				2F6A9BF12B3ADD740079E931 /* CatalogView.swift in Sources */,
 				2F6A9C152B3C30F90079E931 /* DDFField.swift in Sources */,
+				2FD2C9762B4C673A00F20F8B /* DDFHeader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -376,17 +390,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				2FB7701B2B404A39005B37E4 /* DDFFieldDefinition.swift in Sources */,
+				2FD2C97E2B4D6AD900F20F8B /* Constants.swift in Sources */,
 				2F6A9C092B3AEC010079E931 /* DDFUtils.swift in Sources */,
 				2FB770192B404A28005B37E4 /* DDFModule.swift in Sources */,
 				2F6A9C002B3AE1E30079E931 /* Sequence+.swift in Sources */,
 				2F6A9C032B3AE24D0079E931 /* Array+.swift in Sources */,
+				2FD2C97A2B4C677400F20F8B /* Data+Values.swift in Sources */,
 				2F6A9C0C2B3B6B170079E931 /* DDFSubfieldDefinition.swift in Sources */,
 				2F6A9C102B3C29F30079E931 /* ISO8211Error.swift in Sources */,
 				2F6A9C132B3C2D720079E931 /* CatalogProvider.swift in Sources */,
 				2F6A9C162B3C30F90079E931 /* DDFField.swift in Sources */,
 				2FB7701A2B404A31005B37E4 /* DDFRecord.swift in Sources */,
-				2FB770682B409F38005B37E4 /* DDFSubfield.swift in Sources */,
 				2F6A9C1C2B3C98970079E931 /* MoreMath.swift in Sources */,
+				2FD2C9772B4C673A00F20F8B /* DDFHeader.swift in Sources */,
 				2F6A9C062B3AE2C30079E931 /* String+.swift in Sources */,
 				2F6A9BFD2B3AE1CA0079E931 /* UInt8+.swift in Sources */,
 				2FB7706B2B417D24005B37E4 /* Enums.swift in Sources */,
