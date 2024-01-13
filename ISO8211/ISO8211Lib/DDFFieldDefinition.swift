@@ -187,7 +187,6 @@ public struct DDFFieldDefinition {
         for iSF in 0..<nSFCount {
             var poSFDefn = DDFSubfieldDefinition()
             poSFDefn.setName(subfieldNames[iSF])
-            let result = poSFDefn.setFormat(formatControls)
             addSubfield(poSFDefn, dontAddToFormat: true)
         }
         subfieldNames.removeAll()
