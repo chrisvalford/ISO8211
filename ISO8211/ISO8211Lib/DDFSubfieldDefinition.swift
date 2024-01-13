@@ -71,7 +71,15 @@ public struct DDFSubfieldDefinition {
             if formatString.count > 1 {
                 if formatString[1] == "(" {
                     let bytesStr = formatString.substring(from: 2)
-                    let value = Int(bytesStr) ?? 0
+                    var str = ""
+                    for ch in bytesStr {
+                        if ch.isNumber {
+                            str.append(ch)
+                        } else {
+                            break
+                        }
+                    }
+                    let value = Int(str) ?? 0
                     assert(value % 8 == 0)
                     formatWidth = value / 8
                     binaryFormat = .signedInteger
@@ -311,9 +319,15 @@ public struct DDFSubfieldDefinition {
 //            } else {
 
             if formatWidth == 0 {
+                //FIXME:
                 print("Zero length format width.")
                 print("Possible Field name: VRPT: description: Vector record pointer field (VS)        NAME = 0x(VS) 78(VS) 72(VS) 02(VS) 00(VS) 00(VS)    VRID RCNM = 120,RCID = 626(VS)        ORNT = 255")
-                abyData = Array(data)
+                // As the formatString is B(40)
+                // Try formatWidth = 1
+                formatWidth = 1
+                if let byte = data.first {
+                    abyData = [byte]
+                }
             }
 
             else if formatWidth == 1 {

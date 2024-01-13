@@ -15,7 +15,7 @@ public struct DDFFieldDefinition {
     private var formatControls = ""
     private var repeatingSubfields = false
     private(set) var fixedWidth = 0 // zero if variable.
-    private var dataStructCode: DataStructCode = .elementary
+    private var dataStructCode = DataStructCode.elementary
     private var dataTypeCode: DataTypeCode = .charString
     private(set) var subfieldCount = 0
     private(set) var subfieldDefinitions: [DDFSubfieldDefinition] = []
@@ -187,6 +187,7 @@ public struct DDFFieldDefinition {
         for iSF in 0..<nSFCount {
             var poSFDefn = DDFSubfieldDefinition()
             poSFDefn.setName(subfieldNames[iSF])
+            let result = poSFDefn.setFormat(formatControls)
             addSubfield(poSFDefn, dontAddToFormat: true)
         }
         subfieldNames.removeAll()
