@@ -6,123 +6,126 @@
 //
 
 import SwiftUI
+import System
 
 class CatalogProvider: ObservableObject {
 
     @Published var message = ""
     @Published var recordCount = 0
+    @Published var fileSize: UInt64 = 0
 
     private var module = DDFModule()
+    private var url: URL = URL(fileURLWithPath: "")
 
     func open(filePath: String) {
+        url = URL(fileURLWithPath: filePath)
+        fileSize = url.fileSize
         do {
-            try module.open(filePath: filePath)
+            try module.open(url: url)
         } catch {
             message = error.localizedDescription
             return
         }
         readRecords()
+        module.close()
     }
 
     /**
      * Loop reading records till there are none left.
      */
     func readRecords() {
-        var poRecord: DDFRecord?
-        var iRecord = 0
+        var record: DDFRecord?
+        var count = 0
 
         repeat {
-            poRecord = module.readRecord()
-            guard let poRecord = poRecord else {
+            record = module.readRecord()
+            guard let record = record else {
                 break
             }
-            iRecord += 1
-            print("Record \(iRecord) (\(poRecord.getDataSize()) bytes)")
+            count += 1
+            let recordSize = record.dataSize
+            print("Record \(count) (\(recordSize) bytes)")
 
-            // Loop over each field in this particular record.
-            for iField in 0..<poRecord.getFieldCount() {
-                if let poField = poRecord.getField(at: iField) {
-                    viewRecordField(poField)
+            // Loop over each field in this particular record    
+            for index in 0..<record.fieldCount {
+                if let field = record.getField(at: index) {
+                    viewRecordField(field)
                 }
             }
-        } while poRecord != nil
-        recordCount = iRecord
+        } while record != nil
+        recordCount = count
     }
 
-    func viewRecordField(_ poField: DDFField) {
-        var pachFieldData: Data
-        guard let poFieldDefn: DDFFieldDefinition = poField.getFieldDefinition() else {
+    func viewRecordField(_ field: DDFField) {
+        var fieldData: Data
+        guard let fieldDefinition = field.fieldDefinition else {
             print("Cannot find field definition.")
             return
         }
 
         // Report general information about the field.
-        print("(GI)    Field name: \(poFieldDefn.getName()): description: \(poFieldDefn.getDescription())")
+        print("(GI)    Field name: \(fieldDefinition.fieldName): description: \(fieldDefinition.fieldDescription)")
 
         // Get this fields raw data.  We will move through
         // it consuming data as we report subfield values.
-        pachFieldData = poField.getData()
-        var nBytesRemaining = poField.getDataSize()
+        fieldData = field.data
+        var bytesRemaining = field.dataSize
 
         // Loop over the repeat count for this fields
         // subfields.  The repeat count will almost
         // always be one.
-        for _ in 0..<poField.getRepeatCount() {
+        for _ in 0..<field.repeatCount {
             // Loop over all the subfields of this field, advancing
             // the data pointer as we consume data.
-            for iSF in 0..<poFieldDefn.getSubfieldCount() {
-                guard let poSFDefn: DDFSubfieldDefinition = poFieldDefn.getSubfield(at: iSF) else {
-                    print("Could not find subfield definition")
-                    break
-                }
-                let nBytesConsumed = viewSubfield(poSFDefn: poSFDefn,
-                                                  pachFieldData: pachFieldData,
-                                                  nBytesRemaining: nBytesRemaining)
-                nBytesRemaining -= nBytesConsumed
-                if nBytesConsumed > 0 {
-                    let bytes: [UInt8] = Array(pachFieldData)
-                    let subBytes = Array(bytes[nBytesConsumed...])
-                    pachFieldData.removeAll(keepingCapacity: true)
-                    pachFieldData = Data(subBytes)
+            for subfieldDefinition in fieldDefinition.subfieldDefinitions {
+                let consumed = viewSubfield(subfieldDefinition: subfieldDefinition,
+                                            pachFieldData: fieldData,
+                                            bytesRemaining: bytesRemaining)
+                bytesRemaining -= consumed
+                if consumed > 0 {
+                    let bytes: [UInt8] = Array(fieldData)
+                    let subBytes = Array(bytes[consumed...])
+                    fieldData.removeAll(keepingCapacity: true)
+                    fieldData = Data(subBytes)
                 }
             }
         }
     }
 
-    private func viewSubfield(poSFDefn sfDefn: DDFSubfieldDefinition,
+    private func viewSubfield(subfieldDefinition sfDefn: DDFSubfieldDefinition,
                               pachFieldData: Data,
-                              nBytesRemaining: Int) -> Int {
+                              bytesRemaining: Int) -> Int {
         var bytesConsumed: Int? = 0
-        var poSFDefn = sfDefn
+        var subfieldDefinition = sfDefn
 
-        switch poSFDefn.getType() {
-        case .DDFInt:
-            if (poSFDefn.getBinaryFormat() == .unsignedInteger) {
-                let value = poSFDefn.extractIntData(pachSourceData: pachFieldData,
-                                                    nMaxBytes: nBytesRemaining,
-                                                    pnConsumedBytes: &bytesConsumed)
-                print("(VS)        \(poSFDefn.getName()) = \(value)")
+        switch subfieldDefinition.dataType {
+        case .intType:
+            if subfieldDefinition.binaryFormat == .unsignedInteger {
+                let value = subfieldDefinition.extractIntData(data: pachFieldData,
+                                                              maximumBytes: bytesRemaining,
+                                                              bytesConsumed: &bytesConsumed)
+                print("(VS)        \(subfieldDefinition.getName()) = \(value)")
             } else {
-                let value = poSFDefn.extractIntData(pachSourceData: pachFieldData,
-                                                    nMaxBytes: nBytesRemaining,
-                                                    pnConsumedBytes: &bytesConsumed)
-                print("(VS)        \(poSFDefn.getName()) = \(value)")
+                let value = subfieldDefinition.extractIntData(data: pachFieldData,
+                                                              maximumBytes: bytesRemaining,
+                                                              bytesConsumed: &bytesConsumed)
+                print("(VS)        \(subfieldDefinition.getName()) = \(value)")
             }
 
-        case .DDFFloat:
-            let value = poSFDefn.extractFloatData(pachSourceData: pachFieldData,
-                                                  nMaxBytes: nBytesRemaining,
-                                                  pnConsumedBytes: &bytesConsumed)
-            print("(VS)        \(poSFDefn.getName()) = \(value)")
+        case .floatType:
+            let value = subfieldDefinition.extractFloatData(data: pachFieldData,
+                                                            maximumBytes: bytesRemaining,
+                                                            bytesConsumed: &bytesConsumed)
+            print("(VS)        \(subfieldDefinition.getName()) = \(value)")
 
-        case .DDFString:
-            let bytes = poSFDefn.extractStringData(pachSourceData: pachFieldData,
-                                                   nMaxBytes: nBytesRemaining,
-                                                   pnConsumedBytes: &bytesConsumed)
+        case .stringType:
+            let bytes = subfieldDefinition.extractStringData(data: pachFieldData,
+                                                             maximumBytes: bytesRemaining,
+                                                             bytesConsumed: &bytesConsumed)
             let string = String(bytes: bytes, encoding: .utf8) ?? ""
-            print("(VS)        \(poSFDefn.getName()) = \(string)")
+            print("(VS)        \(subfieldDefinition.getName()) = \(string)")
 
-        case .DDFBinaryString:
+        case .binaryStringType:
             //rjensen 19-Feb-2002 5 integer variables to decode NAME and LNAM
             var vrid_rcnm: Int = 0
             var vrid_rcid: Int = 0
@@ -131,11 +134,11 @@ class CatalogProvider: ObservableObject {
             var foid_fids: Int = 0
 
             //GByte *pabyBString = (GByte *)
-            let pabyBString = poSFDefn.extractStringData(pachSourceData: pachFieldData,
-                                                         nMaxBytes: nBytesRemaining,
-                                                         pnConsumedBytes: &bytesConsumed)
+            let pabyBString = subfieldDefinition.extractStringData(data: pachFieldData,
+                                                                   maximumBytes: bytesRemaining,
+                                                                   bytesConsumed: &bytesConsumed)
 
-            print("(VS)        \(poSFDefn.getName()) = 0x")
+            print("(VS)        \(subfieldDefinition.getName()) = 0x")
             for i in 0..<min(bytesConsumed!, 24) {
                 print(String(format: "(VS) %02X", pabyBString[i]))
             }
@@ -145,7 +148,7 @@ class CatalogProvider: ObservableObject {
             }
 
             // rjensen 19-Feb-2002 S57 quick hack. decode NAME and LNAM bitfields
-            if poSFDefn.getName() == "NAME" {
+            if subfieldDefinition.getName() == "NAME" {
                 vrid_rcnm = Int(pabyBString[0])
 
                 let v1 = Int(pabyBString[1])
@@ -154,7 +157,7 @@ class CatalogProvider: ObservableObject {
                 let v4 = Int(pabyBString[4]) * 16777216
                 vrid_rcid = v1 + v2 + v3 + v4
                 print(String(format: "(VS)\tVRID RCNM = %d,RCID = %u", vrid_rcnm, vrid_rcid))
-            } else if poSFDefn.getName() == "LNAM" {
+            } else if subfieldDefinition.getName() == "LNAM" {
                 let v1 = Int(pabyBString[0])
                 let v2 = Int(pabyBString[1]) * 256
                 let v3 = Int(pabyBString[2])

@@ -51,3 +51,18 @@ public extension String {
         return String(self[startIndex..<endIndex])
     }
 }
+
+extension String {
+    var trimmed: String {
+        if self.first != "0" {
+            return self
+        }
+        var str = self
+        //TODO: Try this
+        //return String(str.trimmingPrefix(while: "0"))
+        while str.first == "0" {
+            str = String(str.dropFirst())
+        }
+        return str
+    }
+}
