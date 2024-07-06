@@ -44,17 +44,17 @@ final class ISO8211Tests: XCTestCase {
         let str1 = "(A,3(B,C),D),X,Y)" // return "A,3(B,C),D".
         let r1 = ddf.expandFormat(source: str1)
         XCTAssertTrue(r1 == "A,3(B,C),D")
-        print(r1)
+        r1.printd(.info)
 
         let str2 = "3A,2C" //return "3A".
         let r2 = ddf.expandFormat(source: str2)
         XCTAssertTrue(r2 == "A,A,A,C,C")
-        print(r2)
+        r2.printd(.info)
 
         let str0 = "(A(2),I(10),3A,A(3),4R,2A)"
         let r3 = ddf.expandFormat(source: str0)
         XCTAssertTrue(r3 == "A(2),I(10),A,A,A,A(3),R,R,R,R,A,A")
-        print(r3)
+        r3.printd(.info)
     }
 
 //    func testScanVariable() throws {

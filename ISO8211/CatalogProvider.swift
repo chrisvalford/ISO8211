@@ -59,12 +59,12 @@ class CatalogProvider: ObservableObject {
     func viewRecordField(_ field: DDFField) {
         var fieldData: Data
         guard let fieldDefinition = field.fieldDefinition else {
-            print("Cannot find field definition.")
+            "Cannot find field definition.".printd(.warning)
             return
         }
 
         // Report general information about the field.
-        print("(GI)    Field name: \(fieldDefinition.fieldName): description: \(fieldDefinition.fieldDescription)")
+        "(GI)    Field name: \(fieldDefinition.fieldName): description: \(fieldDefinition.fieldDescription)".printd(.info)
 
         // Get this fields raw data.  We will move through
         // it consuming data as we report subfield values.
@@ -104,26 +104,26 @@ class CatalogProvider: ObservableObject {
                 let value = subfieldDefinition.extractIntData(data: pachFieldData,
                                                               maximumBytes: bytesRemaining,
                                                               bytesConsumed: &bytesConsumed)
-                print("(VS)        \(subfieldDefinition.getName()) = \(value)")
+                "(VS)        \(subfieldDefinition.getName()) = \(value)".printd(.info)
             } else {
                 let value = subfieldDefinition.extractIntData(data: pachFieldData,
                                                               maximumBytes: bytesRemaining,
                                                               bytesConsumed: &bytesConsumed)
-                print("(VS)        \(subfieldDefinition.getName()) = \(value)")
+                "(VS)        \(subfieldDefinition.getName()) = \(value)".printd(.info)
             }
 
         case .floatType:
             let value = subfieldDefinition.extractFloatData(data: pachFieldData,
                                                             maximumBytes: bytesRemaining,
                                                             bytesConsumed: &bytesConsumed)
-            print("(VS)        \(subfieldDefinition.getName()) = \(value)")
+            "(VS)        \(subfieldDefinition.getName()) = \(value)".printd(.info)
 
         case .stringType:
             let bytes = subfieldDefinition.extractStringData(data: pachFieldData,
                                                              maximumBytes: bytesRemaining,
                                                              bytesConsumed: &bytesConsumed)
             let string = String(bytes: bytes, encoding: .utf8) ?? ""
-            print("(VS)        \(subfieldDefinition.getName()) = \(string)")
+            "(VS)        \(subfieldDefinition.getName()) = \(string)".printd(.info)
 
         case .binaryStringType:
             //rjensen 19-Feb-2002 5 integer variables to decode NAME and LNAM
@@ -138,9 +138,9 @@ class CatalogProvider: ObservableObject {
                                                                    maximumBytes: bytesRemaining,
                                                                    bytesConsumed: &bytesConsumed)
 
-            print("(VS)        \(subfieldDefinition.getName()) = 0x")
+            "(VS)        \(subfieldDefinition.getName()) = 0x".printd(.info)
             for i in 0..<min(bytesConsumed!, 24) {
-                print(String(format: "(VS) %02X", pabyBString[i]))
+                String(format: "(VS) %02X", pabyBString[i]).printd(.info)
             }
 
             if (bytesConsumed! > 24 ) {
@@ -156,7 +156,7 @@ class CatalogProvider: ObservableObject {
                 let v3 = Int(pabyBString[3]) * 65536
                 let v4 = Int(pabyBString[4]) * 16777216
                 vrid_rcid = v1 + v2 + v3 + v4
-                print(String(format: "(VS)\tVRID RCNM = %d,RCID = %u", vrid_rcnm, vrid_rcid))
+                String(format: "(VS)\tVRID RCNM = %d,RCID = %u", vrid_rcnm, vrid_rcid).printd(.info)
             } else if subfieldDefinition.getName() == "LNAM" {
                 let v1 = Int(pabyBString[0])
                 let v2 = Int(pabyBString[1]) * 256
@@ -169,7 +169,7 @@ class CatalogProvider: ObservableObject {
                 foid_agen = v1 + v2
                 foid_find = v3 + v4 + v5 + v6
                 foid_fids = v7 + v8
-                print(String(format: "(VS)\tFOID AGEN = %u,FIDN = %u,FIDS = %u", foid_agen, foid_find, foid_fids))
+                String(format: "(VS)\tFOID AGEN = %u,FIDN = %u,FIDS = %u", foid_agen, foid_find, foid_fids).printd(.info)
             }
         }
         return bytesConsumed!
