@@ -32,7 +32,7 @@ public struct DDFModule {
         do {
             fileHandle = try FileHandle.init(forReadingFrom: url)
         } catch {
-            print(error.localizedDescription)
+            error.localizedDescription.printd()
             throw ISO8211Error.invalidFile
         }
         guard let fileHandle = fileHandle else {
@@ -62,7 +62,7 @@ public struct DDFModule {
         //  If the header is invalid, then clean up, report the error and return.
         if isValid == false {
             close()
-            print("The leader data is not valid!")
+            "The leader data is not valid!".printd(.error)
             return
         }
 
@@ -110,7 +110,7 @@ public struct DDFModule {
                     fieldDefinitionCount += 1
                 }
             } catch {
-                print(error)
+                "\(error)".printd(.error)
             }
         }
         data.removeAll()
@@ -118,7 +118,7 @@ public struct DDFModule {
         do {
             firstRecordOffset = try fileHandle.offset()
         } catch {
-            print(error)
+            "\(error)".printd(.error)
         }
     }
 
@@ -139,7 +139,7 @@ public struct DDFModule {
                 try fileHandle?.close()
                 fileHandle = nil
             } catch {
-                print(error)
+                "\(error)".printd(.error)
             }
         }
         record = nil

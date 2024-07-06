@@ -58,7 +58,7 @@ public struct DDFField {
             for index in 0..<fieldDefinition.subfieldCount {
                 var consumed: Int? = 0
                 guard let subfieldDefinition = fieldDefinition.getSubfield(at: index) else {
-                    print("Didn't find dubfield definition, looping")
+                    "Didn't find dubfield definition, looping".printd(.info)
                     continue
                 }
 

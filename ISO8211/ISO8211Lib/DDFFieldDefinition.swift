@@ -29,7 +29,7 @@ public struct DDFFieldDefinition {
         self.tag = tag
 
         guard let dataStr = String(data: data, encoding: .utf8) else {
-            print("Failed to get string from pachFieldData")
+            "Failed to get string from pachFieldData.".printd(.warning)
             return false
         }
 
@@ -48,8 +48,8 @@ public struct DDFFieldDefinition {
             dataStructCode = .concatenated
 
         default:
-            print("Unrecognised data_struct_code value \(data[0]).")
-            print("Field \(tag) initialization incorrect.")
+            "Unrecognised data_struct_code value \(data[0]).".printd(.warning)
+            "Field \(tag) initialization incorrect.".printd(.warning)
             dataStructCode = .elementary
         }
 
@@ -76,8 +76,8 @@ public struct DDFFieldDefinition {
             dataTypeCode = .mixedDataType
 
         default:
-            print("Unrecognised data_type_code value \(data[1]).")
-            print("Field \(tag) initialization incorrect.")
+            "Unrecognised data_type_code value \(data[1]).".printd(.warning)
+            "Field \(tag) initialization incorrect.".printd(.warning)
             dataTypeCode = .charString
         }
 
@@ -205,7 +205,7 @@ public struct DDFFieldDefinition {
         if formatControls.count < 2
             || !formatControls.hasPrefix("(")
             || !formatControls.hasSuffix(")") {
-            print("Format controls for \(tag) field missing brackets: \(formatControls)")
+            "Format controls for \(tag) field missing brackets: \(formatControls)".printd(.warning)
             return false
         }
 
@@ -234,7 +234,7 @@ public struct DDFFieldDefinition {
             // This may be legal by the 8211 specification, but isn't encountered
             // in any formats we care about so we just blow.
             if formatItemIndex >= subfieldCount {
-                print("Got more formats than subfields for field \(tag).")
+                "Got more formats than subfields for field \(tag).".printd(.warning)
                 break
             }
             if !subfieldDefinitions[formatItemIndex].setFormat(pastPrefix) {
@@ -246,7 +246,7 @@ public struct DDFFieldDefinition {
         // Verify that we got enough formats, cleanup and return.
         formatItems.removeAll()
         if formatItemIndex < subfieldCount-1 {
-            print("Got less formats than subfields for field \(tag).");
+            "Got less formats than subfields for field \(tag).".printd(.warning)
             return false
         }
 

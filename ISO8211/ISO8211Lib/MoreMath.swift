@@ -12,8 +12,8 @@ struct MoreMath {
      * Converts a byte in the range of -128 to 127 to an int in the
      * range 0 - 255.
      *
-     * - Parameter b (-128 &lt;= b &lt;= 127)
-     * - Returns int (0 &lt;= b &lt;= 255)
+     * - Parameter b (-128 <= b <= 127)
+     * - Returns int (0 <= b <= 255)
      */
     public static func signedToInt(b: UInt8) -> Int {
         return Int(b & 0xff)

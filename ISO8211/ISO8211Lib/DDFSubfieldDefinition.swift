@@ -104,11 +104,11 @@ public struct DDFSubfieldDefinition {
             }
 
         case "X":
-            print("Format type of \(formatString[0]) not supported.")
+            "Format type of \(formatString[0]) not supported.".printd(.warning)
             return false
 
         default:
-            print("Format type of \(formatString[0]) not recognised.")
+            "Format type of \(formatString[0]) not recognised.".printd(.warning)
             return false
         }
 
@@ -293,8 +293,8 @@ public struct DDFSubfieldDefinition {
         case "B", "b":
             var abyData = [UInt8](repeating: 0, count: 80)
             if formatWidth > maximumBytes {
-                print("Attempt to extract int subfield \(name) with format \(formatString)")
-                print("failed as only \(maximumBytes) bytes available.  Using zero.")
+                "Attempt to extract int subfield \(name) with format \(formatString)".printd(.error)
+                "failed as only \(maximumBytes) bytes available.  Using zero.".printd(.error)
                 return 0
             }
             if bytesConsumed != nil {
@@ -320,8 +320,8 @@ public struct DDFSubfieldDefinition {
 
             if formatWidth == 0 {
                 //FIXME:
-                print("Zero length format width.")
-                print("Possible Field name: VRPT: description: Vector record pointer field (VS)        NAME = 0x(VS) 78(VS) 72(VS) 02(VS) 00(VS) 00(VS)    VRID RCNM = 120,RCID = 626(VS)        ORNT = 255")
+                "Zero length format width.".printd(.warning)
+                "Possible Field name: VRPT: description: Vector record pointer field (VS)        NAME = 0x(VS) 78(VS) 72(VS) 02(VS) 00(VS) 00(VS)    VRID RCNM = 120,RCID = 626(VS)        ORNT = 255".printd(.warning)
                 // As the formatString is B(40)
                 // Try formatWidth = 1
                 formatWidth = 1
@@ -458,8 +458,8 @@ public struct DDFSubfieldDefinition {
 
         if !isVariable {
             if formatWidth > maximumBytes {
-                print("Only \(maximumBytes) bytes available for subfield \(name) with")
-                print("format string \(formatString) ... returning shortened data.")
+                "Only \(maximumBytes) bytes available for subfield \(name) with".printd(.warning)
+                "format string \(formatString) ... returning shortened data.".printd(.warning)
                 if bytesConsumed != nil {
                     bytesConsumed = maximumBytes
                 }

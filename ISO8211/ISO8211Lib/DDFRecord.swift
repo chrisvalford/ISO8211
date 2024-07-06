@@ -74,7 +74,7 @@ public class DDFRecord {
         do {
             data = try fp.read(upToCount: dataSize - fieldDataOffset)
         } catch {
-            print(error.localizedDescription)
+            error.localizedDescription.printd(.error)
             return false
         }
         guard let data = data else { return false }
@@ -84,7 +84,7 @@ public class DDFRecord {
             && fp.availableData.count == 0 {
             return false
         } else if data.count != (dataSize - fieldDataOffset) {
-            print("Data record is short on DDF file.")
+            "Data record is short on DDF file.".printd(.warning)
             return false
         }
 
@@ -116,14 +116,14 @@ public class DDFRecord {
         do {
             data = try fileHandle.read(upToCount: LEADER_SIZE)
         } catch {
-            print(error.localizedDescription)
+            error.localizedDescription.printd(.error)
             return false
         }
 
         if data?.count == 0 && fileHandle.availableData.count == 0 {
             return false
         } else if data?.count != LEADER_SIZE {
-            print("Leader is short on DDF file.")
+            "Leader is short on DDF file.".printd(.warning)
             return false
         }
         achLeader = data!
@@ -142,7 +142,7 @@ public class DDFRecord {
         if sizeofFieldLength < 0 || sizeofFieldLength > 9
             || sizeofFieldPos < 0 || sizeofFieldPos > 9
             || sizeofFieldTag < 0 || sizeofFieldTag > 9 {
-            print("ISO8211 record leader appears to be corrupt.")
+            "ISO8211 record leader appears to be corrupt.".printd(.warning)
             return false
         }
 
@@ -154,7 +154,7 @@ public class DDFRecord {
         // Simple checks
         if (recordLength < 24 || recordLength > 100000000 || fieldAreaStart < 24 || fieldAreaStart > 100000)
             && (recordLength != 0) {
-            print("Data record appears to be corrupt on DDF file.")
+            "Data record appears to be corrupt on DDF file.".printd(.warning)
             return false
         }
 
@@ -165,12 +165,12 @@ public class DDFRecord {
             do {
                 data = try fileHandle.read(upToCount: dataSize)
             } catch {
-                print(error.localizedDescription)
+                error.localizedDescription.printd(.error)
                 return false
             }
             guard let data = data else { return false }
             if data.count != dataSize {
-                print("Data record is short on DDF file.")
+                "Data record is short on DDF file.".printd(.warning)
                 return false
             }
             asciiData = data
@@ -183,7 +183,7 @@ public class DDFRecord {
                     let newData = try fileHandle.read(upToCount: 1)
                     asciiData += newData!
                 } catch {
-                    print(error.localizedDescription)
+                    error.localizedDescription.printd(.error)
                     return false
                 }
             }
@@ -214,7 +214,7 @@ public class DDFRecord {
 
                 // Find the corresponding field in the module directory.
                 guard let fieldDefinition = module.findFieldDefinition(tag: tag) else {
-                    print("(1) Undefined field named: \(tag) encountered in data record.")
+                    "(1) Undefined field named: \(tag) encountered in data record.".printd(.warning)
                     return false
                 }
 
@@ -233,7 +233,7 @@ public class DDFRecord {
         // zero. In this case we have to read all the data based on
         // the size of data items as per ISO8211 spec Annex C, 1.5.1.
         else {
-            print("Record with zero length, use variant (C.1.5.1) logic.")
+            "Record with zero length, use variant (C.1.5.1) logic.".printd(.info)
 
             //   _recLength == 0, handle the large record.
             //   read the remainder of the record.
@@ -252,12 +252,12 @@ public class DDFRecord {
                     data = try fileHandle.read(upToCount: nFieldEntryWidth)
                     tmpBuf = data!
                 } catch {
-                    print(error.localizedDescription)
+                    error.localizedDescription.printd(.error)
                     return false
                 }
 
                 if tmpBuf.count != nFieldEntryWidth {
-                    print("Data record is short on DDF file.")
+                    "Data record is short on DDF file.".printd(.warning)
                     return false
                 }
 
@@ -282,7 +282,7 @@ public class DDFRecord {
                 let pos = try fp.offset() - UInt64(rewindSize)
                 try fp.seek(toOffset: pos)
             } catch {
-                print(error.localizedDescription)
+                error.localizedDescription.printd(.error)
                 return false
             }
             dataSize -= rewindSize
@@ -299,14 +299,14 @@ public class DDFRecord {
                 do {
                     data = try fp.read(upToCount: nFieldLength)
                 } catch {
-                    print(error.localizedDescription)
+                    error.localizedDescription.printd(.error)
                     return false
                 }
 
                 tmpBuf = data!
 
                 if tmpBuf.count != nFieldLength {
-                    print("Data record is short on DDF file.")
+                    "Data record is short on DDF file.".printd(.warning)
                     return false
                 }
 
@@ -340,7 +340,7 @@ public class DDFRecord {
 
                 // Find the corresponding field in the module directory.
                 guard let fieldDefinition = module.findFieldDefinition(tag: tag) else {
-                    print("(2) Undefined field named: \(tag) encountered in data record.")
+                    "(2) Undefined field named: \(tag) encountered in data record.".printd(.warning)
                     return false
                 }
 
